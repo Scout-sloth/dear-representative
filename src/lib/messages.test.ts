@@ -57,10 +57,6 @@ describe('data consistency', () => {
                 expect(official.district).toBeGreaterThan(0);
             else
                 expect(official.district).toBeUndefined();
-            const contact = official.contacts[0];
-            expect(new URL(contact.url).hostname).toMatch(/\.(house|senate)\.gov$/);
-            expect(contact.status).toBe('review');
-            expect(contact.verifiedAt).toBeUndefined();
         }
     });
     it('provides every template and unique petition IDs for each campaign', () => {

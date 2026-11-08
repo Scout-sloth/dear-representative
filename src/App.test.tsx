@@ -67,9 +67,27 @@ describe('composer', () => {
 
   it('preserves petition filtering and external contact links', () => {
     render(<App/>);
-    expect(screen.getByRole('link', {name: 'Official contact page ↗'}).getAttribute('href')).toBe('https://bonamici.house.gov/contact');
+    expect(screen.getAllByRole('link', {name: 'Official contact form ↗'})[0].getAttribute('href')).toBe('https://bonamici.house.gov/contact/email');
     change(screen.getByLabelText('Filter'), 'house');
     expect(screen.queryByRole('heading', {name: 'Remove Chuck Schumer for a younger leader'})).toBeNull();
     expect(screen.getByRole('heading', {name: 'Remove Chuck Schumer and Hakeem Jeffries from leadership roles'})).toBeTruthy();
+  });
+
+  it('copying a phone number does not change the draft, sender fields or message copy state', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', {clipboard: {writeText}});
+    render(<App/>);
+    change(editor(), 'My draft');
+    change(name(), 'Alex');
+    change(city(), 'Salem');
+    fireEvent.click(screen.getAllByRole('button', {name: /Copy Suzanne Bonamici.*phone number/})[0]);
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('(202) 225-0855'));
+    expect(editor().value).toBe('My draft');
+    expect(name().value).toBe('Alex');
+    expect(city().value).toBe('Salem');
+    expect(screen.getByRole('button', {name: 'Copy complete message'})).toBeTruthy();
+    change(screen.getByLabelText('Congressional office'), 'wyden');
+    expect(screen.queryByText('Number copied.')).toBeNull();
+    expect(editor().value).toBe(baseline.senate.standard);
   });
 });

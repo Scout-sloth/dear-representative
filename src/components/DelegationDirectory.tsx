@@ -1,4 +1,5 @@
 import type {Legislator, State} from '../types';
+import ContactActions from './ContactActions';
 
 export default function DelegationDirectory({officials, state}: {officials: Legislator[]; state: State}) {
   return (
@@ -11,7 +12,7 @@ export default function DelegationDirectory({officials, state}: {officials: Legi
           <article className="directory-card" key={o.id}>
             <strong>{o.name}</strong>
             <span>{o.chamber === 'senate' ? 'U.S. Senator' : `House · ${o.state}-${o.district}`}</span>
-            <a href={o.contacts[0].url} target="_blank" rel="noopener noreferrer">Contact / official site ↗</a>
+            <ContactActions official={o}/>
           </article>
         ))}
       </div>

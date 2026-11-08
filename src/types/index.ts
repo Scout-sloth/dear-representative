@@ -3,12 +3,31 @@ export interface State {
     code: string;
     name: string;
 }
-export type ContactMethod = {
-    status: 'verified' | 'review';
-    sourceUrl?: string;
-    verifiedAt?: string;
-} & ({
-    kind: 'contact-form' | 'website';
+export type Verification = {
+    status: 'verified';
+    sourceUrls: [string, ...string[]];
+    lastVerified: string;
+} | {
+    status: 'unverified' | 'unknown';
+    sourceUrls: string[];
+    lastVerified: null;
+};
+export type FormFunctionality = {
+    status: 'tested';
+    checkedAt: string;
+    scope: string;
+    notes: string;
+} | {
+    status: 'not-tested' | 'could-not-test';
+    checkedAt: string;
+    notes: string;
+};
+export type ContactMethod = Verification & {id: string} & ({
+    kind: 'contact-form';
+    url: string;
+    functionality: FormFunctionality;
+} | {
+    kind: 'website';
     url: string;
 } | {
     kind: 'email';
@@ -16,6 +35,15 @@ export type ContactMethod = {
 } | {
     kind: 'phone';
     number: string;
+    office: 'washington-dc' | 'district';
+});
+export type ContactRestriction = {
+    type: 'district-residency' | 'state-residency' | 'zip-verification' | 'address-verification' | 'other' | 'unknown-policy';
+    effect: 'response-policy' | 'required-information' | 'verification-step' | 'submission-block' | 'unknown';
+    appliesTo: string[];
+    description: string;
+} & ({status: 'verified'; sourceUrl: string; lastVerified: string} | {
+    status: 'unverified' | 'unknown'; sourceUrl?: string; lastVerified: null;
 });
 export interface Legislator {
     id: string;
@@ -24,13 +52,9 @@ export interface Legislator {
     state: State['code'];
     chamber: Chamber;
     district?: number;
-    // The first contact is the primary official web destination.
-    contacts: [
-        Extract<ContactMethod, {
-            kind: 'contact-form' | 'website';
-        }>,
-        ...ContactMethod[]
-    ];
+    identityVerification: Verification;
+    contacts: ContactMethod[];
+    contactRestrictions: ContactRestriction[];
     websiteUrl: string;
     notes?: string;
 }

@@ -1,0 +1,73 @@
+import {useState} from 'react';
+import type {Legislator, Verification} from '../types';
+import {contactLabels, formatPhone, materialRestrictions, phoneHref} from '../lib/contacts';
+
+function Sources({verification}: {verification: Verification}) {
+  return <>
+    <span>{verification.status === 'verified' ? `Verified ${verification.lastVerified}` : 'Not verified'}</span>
+    {verification.sourceUrls.map((url, i) => <a key={url} href={url} target="_blank" rel="noopener noreferrer">Source {i + 1}</a>)}
+  </>;
+}
+
+export default function ContactActions({official}: {official: Legislator}) {
+  const [copyStatus, setCopyStatus] = useState('');
+  const form = official.contacts.find(c => c.kind === 'contact-form');
+  const phone = official.contacts.filter(c => c.kind === 'phone').find(c => c.office === 'washington-dc');
+  const website = official.contacts.find(c => c.kind === 'website');
+  const email = official.contacts.find(c => c.kind === 'email');
+  const notices = official.contactRestrictions.filter(r =>
+    [form?.id, phone?.id, email?.id].some(id => id && materialRestrictions([r], id).length > 0),
+  );
+
+  async function copyPhone() {
+    if (!phone) return;
+    try {
+      await navigator.clipboard.writeText(formatPhone(phone.number));
+      setCopyStatus('Number copied.');
+    } catch {
+      setCopyStatus('Copy unavailable. Select and copy the displayed number.');
+    }
+  }
+
+  return (
+    <div className="contact-actions" role="group" aria-label={`Contact ${official.name}`}>
+      {form ? <a className="contact-primary" href={form.url} target="_blank" rel="noopener noreferrer">
+        Official contact form ↗{form.status !== 'verified' && ' (unverified link)'}
+      </a> : <p className="hint">Contact-form URL not verified.</p>}
+      {phone ? <div className="contact-phone">
+        <span>Washington, D.C.: <strong>{formatPhone(phone.number)}</strong>{phone.status !== 'verified' && ' (unverified)'}</span>
+        <div className="contact-phone-actions">
+          <a href={phoneHref(phone.number)} aria-label={`Call ${official.name}'s Washington, D.C. office`}>Call</a>
+          <button type="button" className="button secondary" onClick={copyPhone} aria-label={`Copy ${official.name}'s Washington, D.C. phone number`}>Copy number</button>
+        </div>
+        <span className="hint" role="status">{copyStatus}</span>
+      </div> : <p className="hint">Washington, D.C. phone number not verified.</p>}
+      {website && <a href={website.url} target="_blank" rel="noopener noreferrer">Official website ↗{website.status !== 'verified' && ' (unverified link)'}</a>}
+      {email && <a href={`mailto:${email.address}`}>Direct email: {email.address}{email.status !== 'verified' && ' (unverified)'}</a>}
+      {notices.map((r, i) => <p className="hint contact-notice" key={i}>{r.description}</p>)}
+      {form && phone && notices.some(r => r.appliesTo.includes(form.id)) && <p className="hint">The office also publishes the phone number above. A response is not guaranteed.</p>}
+      <details className="contact-details">
+        <summary>Sources and contact details</summary>
+        <p className="contact-sources">Officeholder: <Sources verification={official.identityVerification}/></p>
+        {official.contacts.map(contact => <div key={contact.id}>
+          <p className="contact-sources">{contactLabels[contact.kind]}: <Sources verification={contact}/></p>
+          {contact.kind === 'contact-form' && <p className="hint">
+            Official URL verification does not confirm form functionality.{' '}
+            {contact.functionality.status === 'tested'
+              ? `Independently tested (${contact.functionality.scope})`
+              : contact.functionality.status === 'could-not-test' ? 'Functionality could not be tested' : 'Functionality not independently tested'}
+            {' — '}{contact.functionality.checkedAt}. {contact.functionality.notes}
+          </p>}
+        </div>)}
+        {!email && <p className="hint">No direct email address verified for general constituent correspondence.</p>}
+        <p className="hint">Correspondence restrictions:</p>
+        {official.contactRestrictions.length === 0 && <p className="hint">Policy not established; absence of a recorded restriction does not mean unrestricted access.</p>}
+        {official.contactRestrictions.map((r, i) => <p className="hint" key={i}>
+          {r.description} Applies to: {r.appliesTo.map(id => contactLabels[official.contacts.find(c => c.id === id)!.kind]).join(', ')}.
+          {' '}{r.status === 'verified' ? `Verified ${r.lastVerified}.` : `Status: ${r.status}; not confirmed.`}
+          {r.sourceUrl && <> <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">{r.status === 'verified' ? 'Restriction source' : 'Page reviewed'}</a></>}
+        </p>)}
+      </details>
+    </div>
+  );
+}

@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import ContactActions from './ContactActions';
 import {renderBody, renderCompleteMessage, templateLabels} from '../lib/messages';
 import type {Campaign, Legislator, State, TemplateId} from '../types';
 
@@ -91,10 +92,8 @@ export default function MessageComposer({campaign, officials, state, initialOffi
       <div className="actions">
         <button onClick={copy}>{copied ? 'Copied!' : 'Copy complete message'}</button>
         <button className="button secondary" onClick={reset}>Reset to Original Template</button>
-        <a className="button secondary" href={official.contacts[0].url} target="_blank" rel="noopener noreferrer">Official contact page ↗</a>
-        <a className="text-link" href={official.websiteUrl} target="_blank" rel="noopener noreferrer">Office website ↗</a>
       </div>
-      <p className="hint">Contact link status: review before public launch. {official.notes || 'Direct constituent email address not verified; use the official contact channel.'}</p>
+      <ContactActions key={official.id} official={official}/>
     </section>
   );
 }
