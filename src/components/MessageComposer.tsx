@@ -93,7 +93,7 @@ export default function MessageComposer({campaign, officials, state, initialOffi
         <button onClick={copy}>{copied ? 'Copied!' : 'Copy complete message'}</button>
         <button className="button secondary" onClick={reset}>Reset to Original Template</button>
       </div>
-      <ContactActions key={official.id} official={official}/>
+      <ContactActions key={official.id} official={official} variant="selected"/>
     </section>
   );
 }

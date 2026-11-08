@@ -4,7 +4,7 @@ import ContactActions from './ContactActions';
 import {officials} from '../data/states/oregon';
 import type {Legislator} from '../types';
 
-afterEach(() => {cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals();});
+afterEach(() => {cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); Reflect.deleteProperty(document, 'execCommand');});
 const official = officials.find(o => o.id === 'bynum')!;
 
 describe('contact actions', () => {
@@ -67,5 +67,36 @@ describe('contact actions', () => {
       ? {...c, functionality:{status:'tested', checkedAt:'2026-11-08', scope:'keyboard navigation only', notes:'No submission tested.'}} : c)};
     render(<ContactActions official={tested}/>);
     expect(screen.getByText(/Independently tested \(keyboard navigation only\)/)).toBeTruthy();
+  });
+
+  it('uses the number itself as the calling link beside a compact Copy button', () => {
+    render(<ContactActions official={official}/>);
+    const phone = screen.getByRole('link', {name:/225-5711.*Call Janelle/});
+    const copy = screen.getByRole('button', {name:/Copy Janelle/});
+    expect(phone.textContent).toBe('(202) 225-5711');
+    expect(copy.textContent).toBe('Copy');
+    expect(phone.parentElement).toBe(copy.parentElement);
+    expect(screen.queryByText('Call', {exact:true})).toBeNull();
+    expect(screen.getByRole('status').getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('keeps selected identity above the actions and outside expandable details', () => {
+    const {container, rerender} = render(<ContactActions official={official} variant="selected"/>);
+    expect(screen.getByText('Selected representative')).toBeTruthy();
+    expect(screen.getByRole('heading', {name:'Janelle Bynum'}).closest('details')).toBeNull();
+    expect(screen.getByText('U.S. Representative · OR-5')).toBeTruthy();
+    expect(container.querySelector('.contact-actions--selected')).toBeTruthy();
+    rerender(<ContactActions official={officials.find(o => o.id === 'wyden')!} variant="selected"/>);
+    expect(screen.getByRole('heading', {name:'Ron Wyden'})).toBeTruthy();
+    expect(screen.getByText('U.S. Senator')).toBeTruthy();
+  });
+
+  it.each([true, false])('announces the actual legacy fallback result: %s', async result => {
+    vi.stubGlobal('navigator', {});
+    Object.defineProperty(document, 'execCommand', {value:vi.fn(() => result), configurable:true});
+    render(<ContactActions official={official}/>);
+    fireEvent.click(screen.getByRole('button', {name:/Copy Janelle/}));
+    await waitFor(() => expect(screen.getByRole('status').textContent).toContain(result ? 'Number copied.' : 'Copy unavailable.'));
+    expect(document.querySelector('textarea')).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import type {Legislator, Verification} from '../types';
 import {contactLabels, formatPhone, materialRestrictions, phoneHref} from '../lib/contacts';
+import {copyPhoneText} from '../lib/clipboard';
 
 function Sources({verification}: {verification: Verification}) {
   return <>
@@ -9,7 +10,7 @@ function Sources({verification}: {verification: Verification}) {
   </>;
 }
 
-export default function ContactActions({official}: {official: Legislator}) {
+export default function ContactActions({official, variant = 'directory'}: {official: Legislator; variant?: 'directory' | 'selected'}) {
   const [copyStatus, setCopyStatus] = useState('');
   const form = official.contacts.find(c => c.kind === 'contact-form');
   const phone = official.contacts.filter(c => c.kind === 'phone').find(c => c.office === 'washington-dc');
@@ -21,26 +22,29 @@ export default function ContactActions({official}: {official: Legislator}) {
 
   async function copyPhone() {
     if (!phone) return;
-    try {
-      await navigator.clipboard.writeText(formatPhone(phone.number));
-      setCopyStatus('Number copied.');
-    } catch {
-      setCopyStatus('Copy unavailable. Select and copy the displayed number.');
-    }
+    setCopyStatus('');
+    const copied = await copyPhoneText(formatPhone(phone.number));
+    setCopyStatus(copied ? 'Number copied.' : 'Copy unavailable. Select and copy the displayed number, or press and hold it on your phone.');
   }
 
   return (
-    <div className="contact-actions" role="group" aria-label={`Contact ${official.name}`}>
+    <div className={`contact-actions contact-actions--${variant}`} role="group" aria-label={`Contact ${official.name}`}>
+      {variant === 'selected' && <div className="selected-contact-heading">
+        <div className="selected-contact-label">Selected representative</div>
+        <h3>{official.name}</h3>
+        <p>{official.chamber === 'senate' ? 'U.S. Senator' : `U.S. Representative · ${official.state}-${official.district}`}</p>
+      </div>}
       {form ? <a className="contact-primary" href={form.url} target="_blank" rel="noopener noreferrer">
         Official contact form ↗{form.status !== 'verified' && ' (unverified link)'}
       </a> : <p className="hint">Contact-form URL not verified.</p>}
       {phone ? <div className="contact-phone">
-        <span>Washington, D.C.: <strong>{formatPhone(phone.number)}</strong>{phone.status !== 'verified' && ' (unverified)'}</span>
+        <span className="contact-location">Washington, D.C.</span>
         <div className="contact-phone-actions">
-          <a href={phoneHref(phone.number)} aria-label={`Call ${official.name}'s Washington, D.C. office`}>Call</a>
-          <button type="button" className="button secondary" onClick={copyPhone} aria-label={`Copy ${official.name}'s Washington, D.C. phone number`}>Copy number</button>
+          <a className="contact-phone-link" href={phoneHref(phone.number)} aria-label={`${formatPhone(phone.number)} — Call ${official.name}'s Washington, D.C. office`}>{formatPhone(phone.number)}</a>
+          <button type="button" className="button secondary" onClick={copyPhone} aria-label={`Copy ${official.name}'s Washington, D.C. phone number`}>Copy</button>
         </div>
-        <span className="hint" role="status">{copyStatus}</span>
+        {phone.status !== 'verified' && <span className="hint">Phone number unverified</span>}
+        <span className="hint copy-status" role="status" aria-live="polite" aria-atomic="true">{copyStatus}</span>
       </div> : <p className="hint">Washington, D.C. phone number not verified.</p>}
       {website && <a href={website.url} target="_blank" rel="noopener noreferrer">Official website ↗{website.status !== 'verified' && ' (unverified link)'}</a>}
       {email && <a href={`mailto:${email.address}`}>Direct email: {email.address}{email.status !== 'verified' && ' (unverified)'}</a>}

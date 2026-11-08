@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import App from './App';
 import baseline from './lib/__fixtures__/original-messages.json';
 
@@ -10,6 +10,21 @@ const city = () => screen.getByLabelText<HTMLInputElement>('City (optional)');
 const change = (element: HTMLElement, value: string) => fireEvent.change(element, {target: {value}});
 
 describe('composer', () => {
+  it('keeps selected identity visible and shares the same phone actions with the directory', () => {
+    render(<App/>);
+    const composer = screen.getByRole('region', {name:'Message composer'});
+    const directory = screen.getByRole('region', {name:'Oregon congressional delegation'});
+    expect(within(composer).getByRole('heading', {name:'Suzanne Bonamici'})).toBeTruthy();
+    for (const section of [composer, directory]) {
+      const contact = within(section).getByRole('group', {name:'Contact Suzanne Bonamici'});
+      expect(within(contact).getByRole('link', {name:/225-0855.*Call Suzanne/}).getAttribute('href')).toBe('tel:+12022250855');
+      expect(within(contact).getByRole('button', {name:/Copy Suzanne/}).textContent).toBe('Copy');
+    }
+    change(screen.getByLabelText('Congressional office'), 'wyden');
+    expect(within(composer).getByRole('heading', {name:'Ron Wyden'})).toBeTruthy();
+    expect(within(composer).getByText('U.S. Senator')).toBeTruthy();
+    expect(within(composer).queryByRole('heading', {name:'Suzanne Bonamici'})).toBeNull();
+  });
   it('starts with the existing House standard draft', () => {
     render(<App/>);
     expect(editor().value).toBe(baseline.house.standard);
