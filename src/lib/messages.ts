@@ -1,13 +1,39 @@
-import type {Official,TemplateId} from '../types';
-export const templateLabels:Record<TemplateId,string>={short:'Short',standard:'Standard',detailed:'Detailed'};
-export function makeMessage(official:Official,kind:TemplateId):string {
- const honorific=official.chamber==='senate'?'Senator':'Representative';
- const surname=official.name.split(' ').at(-1);
- const leader=official.chamber==='senate'?'Chuck Schumer':'Hakeem Jeffries';
- const office=official.chamber==='senate'?'Senate Democratic leadership':'House Democratic leadership and the speakership';
- const opening=`Dear ${honorific} ${surname},\n\nI am an Oregon resident writing about the selection of ${office} for the 120th Congress.`;
- if(kind==='short')return `${opening}\n\nPlease let me know whether you plan to support ${leader} for a leadership role, what factors will guide your decision, and whether you support a competitive selection process.\n\nThank you for your response.`;
- const middle=`I would appreciate a clear explanation of your position on ${leader}'s leadership candidacy, including how you evaluate candidates' records on congressional oversight, U.S. military assistance to Israel, campaign finance, and protection of democratic institutions.\n\nPlease explain whether you favor an open and competitive leadership selection process and what criteria you will use when casting your vote.`;
- if(kind==='standard')return `${opening}\n\n${middle}\n\nI would welcome a substantive response addressing these questions.`;
- return `${opening}\n\n${middle}\n\nIn particular, I would appreciate your views on the distinction between defensive and offensive weapons transfers, the role of congressional oversight of foreign military assistance, and what accountability measures you believe Congress should consider.\n\nIf you have already made a public statement or commitment about leadership selection, please share it. I would also appreciate knowing how constituents can follow the outcome of your caucus leadership vote.\n\nThank you for considering these questions and providing a substantive response.`;
+import type { Campaign, Legislator, Sender, State, TemplateId } from '../types';
+export const templateLabels: Record<TemplateId, string> = {
+    short: 'Short', standard: 'Standard', detailed: 'Detailed',
+};
+export interface MessageContext {
+    officialName: string;
+    salutation: string;
+    stateName: string;
+    senderName: string;
+    senderCity: string;
+    details: Record<string, string>;
+}
+// One substitution pass keeps supplied values literal, even if they contain placeholders.
+export function renderTemplate(template: string, context: MessageContext): string {
+    const { details, ...fields } = context;
+    const values: Record<string, string> = { ...details, ...fields };
+    return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
+        if (!Object.hasOwn(values, key))
+            throw new Error(`Unknown message placeholder: ${key}`);
+        return values[key];
+    });
+}
+function contextFor(campaign: Campaign, official: Legislator, state: State, sender: Sender = {}): MessageContext {
+    return {
+        officialName: official.name,
+        salutation: official.salutation,
+        stateName: state.name,
+        senderName: sender.name?.trim() || campaign.senderFallbacks.name,
+        senderCity: sender.city?.trim() || campaign.senderFallbacks.city,
+        details: campaign.details[official.chamber],
+    };
+}
+export function renderBody(campaign: Campaign, official: Legislator, state: State, kind: TemplateId): string {
+    return renderTemplate(campaign.templates[official.chamber][kind].body, contextFor(campaign, official, state));
+}
+export function renderCompleteMessage(campaign: Campaign, official: Legislator, state: State, body: string, sender: Sender = {}): string {
+    const context = contextFor(campaign, official, state, sender);
+    return `Subject: ${renderTemplate(campaign.subject, context)}\n\n${body}${renderTemplate(campaign.signature, context)}`;
 }
