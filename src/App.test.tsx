@@ -10,6 +10,20 @@ const city = () => screen.getByLabelText<HTMLInputElement>('City (optional)');
 const change = (element: HTMLElement, value: string) => fireEvent.change(element, {target: {value}});
 
 describe('composer', () => {
+  it('discloses local composition, clipboard use and hosting privacy without hiding the notice', () => {
+    render(<App/>);
+    expect(screen.getByText('Find official congressional contact channels, write your own message, and explore public petitions. Your message stays in your browser. Nothing is submitted automatically.')).toBeTruthy();
+    const disclosure = screen.getByRole('region', {name:'Your privacy'});
+    expect(disclosure.closest('details')).toBeNull();
+    expect(disclosure.textContent).toContain('browser memory');
+    expect(disclosure.textContent).toContain('device clipboard');
+    expect(disclosure.textContent).toContain('External congressional and petition websites');
+    expect(disclosure.textContent).toContain('technical request information and access logs');
+    expect(within(disclosure).getByRole('link', {name:'GitHub’s privacy statement'}).getAttribute('href')).toBe('https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement');
+    for (const name of ['Message composer','Oregon congressional delegation','Petition directory']) {
+      expect(screen.getByRole('region', {name}).parentElement?.tagName).toBe('MAIN');
+    }
+  });
   it('keeps selected identity visible and shares the same phone actions with the directory', () => {
     render(<App/>);
     const composer = screen.getByRole('region', {name:'Message composer'});

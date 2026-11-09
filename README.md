@@ -188,6 +188,14 @@ git diff --check
 
 Message generation and editing occur entirely in the browser. Names, cities, and drafts exist only in component memory; they are not transmitted, logged, or persisted. Copying writes the complete message to the visitor's clipboard only when requested. There is no localStorage/sessionStorage draft persistence, analytics, cookies, tracking, backend, automatic submission, or third-party fetching. External sites and hosting infrastructure have their own privacy practices; this site does not promise complete anonymity.
 
+The always-visible footer disclosure distinguishes local composition and clipboard copying from external congressional/petition sites and GitHub Pages hosting. GitHub Pages may process ordinary technical request information and access logs; see [GitHub's privacy statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). The app does not intentionally collect or save composer information beyond the temporary browser state needed to edit it.
+
+### System themes and visual checks
+
+`src/styles.css` defines semantic light/dark palettes. Light is the default, with CSS `prefers-color-scheme: dark` overrides and native `color-scheme` support. Preference changes apply without reloads, JavaScript, a toggle, cookies or persistence. Numbered sections alternate subtly; cards have separate surfaces, and the selected representative retains its text label and stronger border. Links remain underlined and keyboard focus is outlined across controls.
+
+Theme tests calculate text contrast (at least 4.5:1) and meaningful control/focus contrast (at least 3:1) from the actual CSS tokens. These checks target WCAG AA but are not a complete accessibility audit. When changing colors, rerun tests and inspect both themes at desktop and narrow mobile widths, including native controls, expanded details, focus and copy feedback. Automated DOM tests cannot establish native mobile or screen-reader rendering.
+
 `.gitignore` excludes dependencies, production output, TypeScript build metadata, and `.env`/`.env.*` files, except an intentionally shareable `.env.example` (which must never contain secrets).
 
 ## Before public launch

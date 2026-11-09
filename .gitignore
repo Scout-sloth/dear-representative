@@ -28,3 +28,14 @@ Thumbs.db
 
 # Local temporary files
 *.local
+
+# Local development TLS material and optional portable tools (never publish).
+.certs/
+.tools/
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+rootCA*
