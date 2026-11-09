@@ -27,7 +27,47 @@ Build for static hosting:
 npm run build
 ```
 
-Deploy the generated `dist/` directory to Cloudflare Pages, Netlify, or GitHub Pages. Vite uses a relative asset base for project-site hosting.
+Vite uses `base: '/'` for hosting at the root of `https://dear-representative.org/`. HTTP (`npm run dev`) and optional local HTTPS (`npm run dev:https`) remain available. Local certificates are not used by production builds.
+
+## GitHub Pages deployment
+
+`.github/workflows/deploy-pages.yml` runs on pushes to `main` or **Actions → Deploy GitHub Pages → Run workflow** (select `main`). Other manually selected branches are skipped. Node.js 24 runs `npm ci`, tests, typechecking, and `npm run build`; only `dist/` is uploaded through the official Pages artifact action. A separate job deploys it into the `github-pages` environment. Builds have read-only repository access; only deployment has `pages: write` and `id-token: write`. The `pages` concurrency group queues updates without cancelling an active deployment. No personal access token, DNS secret, or deployment branch is needed. See [GitHub's workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+
+### One-time GitHub settings
+
+1. In repository **Settings → Actions → General**, ensure GitHub Actions and the official `actions/*` actions used by this workflow are permitted. The workflow declares its own token permissions; do not enable general repository write access just for deployment.
+2. In **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source.
+3. Prefer verifying domain ownership in the owner's account/organization **Settings → Pages** using GitHub's supplied TXT record. Keep that verification record afterward. Follow [domain verification instructions](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/verifying-your-custom-domain-for-github-pages).
+4. In repository **Settings → Pages → Custom domain**, save `dear-representative.org` before pointing DNS at Pages. Custom Actions deployments use this setting, not a repository `CNAME` file.
+5. Check **Settings → Environments → github-pages** allows deployment from `main`. Complete any required environment approvals when deploying.
+
+### Namecheap DNS
+
+For a domain using Namecheap BasicDNS/PremiumDNS/FreeDNS, open **Domain List → Manage → Advanced DNS → Host Records**. If authoritative nameservers are elsewhere, edit records at that DNS provider instead. Use Automatic TTL. Remove conflicting parking/URL Redirect records for `@` and `www`, while retaining unrelated email and verification records. [Namecheap record instructions](https://www.namecheap.com/support/knowledgebase/article.aspx/319/2237/how-can-i-set-up-an-a-address-record-for-my-domain/)
+
+| Type | Host | Value |
+|---|---|---|
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `casimirsowinski.github.io` |
+
+The `www` target is the repository owner's GitHub Pages hostname, without a protocol or repository path. Update it if the repository transfers owners. GitHub can redirect `www` to the configured apex domain. Avoid wildcard records. IPv6 is optional: if adding apex AAAA records, use all four GitHub values `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`; remove conflicting old AAAA records. Recheck addresses against [GitHub's custom-domain documentation](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site) when maintaining DNS.
+
+### HTTPS and verification
+
+After DNS propagates and GitHub provisions its certificate, enable **Settings → Pages → Enforce HTTPS**. GitHub manages the public certificate; do not upload mkcert certificates or buy/install a Namecheap certificate for this Pages site. Provisioning is not immediate. If HTTPS remains unavailable, check the Pages DNS status, conflicting records, and any restrictive CAA records using [GitHub's HTTPS troubleshooting](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https).
+
+After reviewing, committing and pushing the source changes:
+
+1. Confirm both workflow jobs succeed and the deployment environment links to `https://dear-representative.org/`.
+2. On Windows, inspect DNS with `Resolve-DnsName dear-representative.org -Type A` and `Resolve-DnsName www.dear-representative.org -Type CNAME`.
+3. Open the apex and `www` URLs, check HTTPS/redirects, then hard-refresh. Confirm JavaScript/CSS load from `/assets/` without 404s. The root base is intentional; an unconfigured `github.io/dear-representative/` project URL is not a substitute for testing the custom domain.
+4. Test official selection, template editing, reset, message copying, phone copying, restriction/source expansion, and petition filtering on desktop and mobile. Check Copy by pasting into a scratch field; do not submit messages or call offices during testing.
+5. Confirm the browser has no mixed-content errors and no app-initiated analytics, draft uploads, or persistence. Pages hosting and external destinations have their own privacy practices; hosting does not provide complete anonymity.
+
+Keep `dist/`, dependencies, certificates, CA material, and secrets out of commits. The workflow uploads only the generated static site; never place private files in `public/` or import secrets into client code. GitHub settings, DNS, public HTTPS issuance and live deployment must be verified separately from local build checks.
 
 ## Structure
 
@@ -87,7 +127,53 @@ HTTP `localhost` is generally treated as a secure context, while HTTP on a LAN I
 
 For manual browser checks, use narrow widths (including 320px), keyboard navigation and a real phone. Verify that the phone link and Copy button remain readable, focus outlines are visible, the selected official updates, sources still expand, and restrictions remain visible. Paste a copied number into a scratch field to confirm the actual clipboard contents; also test denied/unavailable clipboard access and manual selection. Do not call an office or submit a message during testing. Automated DOM tests cover the fallback and restoration paths but cannot establish real-device clipboard compatibility.
 
-Optional trusted HTTPS development is deferred to a separate setup task. This increment does not change Vite configuration, install mkcert, generate certificates, or alter trust stores.
+### Optional HTTPS development (Windows 11)
+
+`npm run dev` still starts HTTP. `npm run dev:https` uses a separate Vite configuration and local certificates; production builds and previews do not require certificates. No npm dependencies are added. Vite's host/CORS defaults are retained. HTTPS binds to local network interfaces on port 5173; run it only on a trusted private network.
+
+Install [mkcert](https://github.com/FiloSottile/mkcert) using PowerShell:
+
+```powershell
+winget install --id FiloSottile.mkcert --exact --scope user --source winget
+```
+
+Open a new terminal so `mkcert` is on PATH. If needed in the current terminal, use `& "$env:LOCALAPPDATA\Microsoft\WinGet\Links\mkcert.exe"` in place of `mkcert`.
+
+**One-time trust setup:** run `mkcert -install` only when you intend to install its development CA into Windows/browser trust stores. Review any elevation/security prompt; administrator access or trust changes require your approval. Restart browsers afterward. Generating a certificate alone does not install trust.
+
+From the repository root, generate the server certificate (replace the LAN IP if necessary):
+
+```powershell
+New-Item -ItemType Directory -Force .certs | Out-Null
+mkcert -cert-file .certs/localhost.pem -key-file .certs/localhost-key.pem localhost 127.0.0.1 192.168.1.49
+npm run dev:https
+```
+
+Open `https://localhost:5173/` or `https://127.0.0.1:5173/` on the PC. On a phone on the same LAN, use `https://192.168.1.49:5173/` after installing the public CA certificate as described below. `localhost` on a phone means the phone itself. Stop the HTTP server first if it occupies port 5173; HTTPS intentionally reports a port conflict rather than silently choosing another port.
+
+To regenerate after a LAN IP change, find the active adapter's IPv4 address with `ipconfig`, stop Vite, and rerun the generation command with the new IP and the same filenames. Restart HTTPS and use the new URL. Reusing the same CA does not require reinstalling phone trust. Missing/unreadable certificates produce a setup error instead of falling back silently to HTTP.
+
+**Certificate files and Git:** `.certs/` holds the server certificate and its private key. `mkcert -CAROOT` prints the separate user-profile CA directory. `.gitignore` excludes `.certs/`, local tools, certificate/key extensions and `rootCA*`; Vite denies access to these local files. Never put any certificate material in `public/` or import it into application code. Never force-add ignored files.
+
+- `rootCA.pem` is the **public CA certificate**. Transfer only this file privately to your own testing phone; a copy may be renamed `rootCA.crt` if required by the phone's file picker.
+- `rootCA-key.pem` is the **CA private key**. Never copy, share, publish, commit or transfer it to a phone. It can sign certificates trusted by devices that trust this CA.
+- `.certs/localhost-key.pem` is the **server private key**. Keep it on the development PC; phones do not need it.
+
+**iOS:** open the public CA certificate, install its profile under Settings → General → VPN & Device Management (or Profile Downloaded), then enable it under Settings → General → About → Certificate Trust Settings → Enable Full Trust for Root Certificates. See [Apple's instructions](https://support.apple.com/en-us/102390). Only trust a CA you generated and control.
+
+**Android:** transfer the public CA certificate, then search Settings for “Install a certificate.” On many devices the path is Security & privacy → More security settings → Encryption & credentials → Install a certificate → **CA certificate**. Confirm the warning and select the public CA file. Labels vary by manufacturer and Android release; this is CA trust, not a Wi-Fi/client certificate installation. Restart the browser. Some browsers, apps or managed devices do not accept user-installed CAs; verify in the actual browser rather than assuming trust. Remove the development CA from the phone when no longer needed.
+
+**Test Copy:** first verify the browser shows HTTPS without a certificate warning. Click the phone number's **Copy** button and paste into a local scratch field; do not initiate a call. A browser console, when available, should report `window.isSecureContext === true`. Clipboard permissions and user-gesture requirements still apply. A success message alone does not replace testing the paste result on your phone.
+
+**Troubleshooting:**
+
+- Connection timeout: confirm the current IP, same LAN, no guest Wi-Fi/client isolation or interfering VPN, and that Vite is running. Windows Firewall may require allowing Node/TCP 5173 on the **Private** network profile, preferably restricted to the local subnet. Review administrator prompts; do not disable the firewall or open router ports.
+- Certificate warning: confirm that the URL's IP appears in the generated certificate, the same public CA is trusted, device clocks are correct, and browsers have restarted. Do not bypass warnings or change browser security flags. If the CA itself changes, reinstall the new public CA on testing devices.
+- Firefox on Windows: mkcert may report that automatic Firefox trust setup is unavailable. If Firefox does not use the Windows trust entry, import only `rootCA.pem` into Firefox Settings → Privacy & Security → Certificates → View Certificates → Authorities, and allow it to identify websites. Do not import the CA private key.
+- `mkcert` not found: reopen PowerShell or use the installed executable path above. To inspect the CA location, use `mkcert -CAROOT`; do not display or transmit private-key contents.
+- Copy still fails over trusted HTTPS: check browser permissions and test from a direct button tap. Use manual selection if copying is blocked; the legacy fallback is not guaranteed on mobile.
+
+Installing mkcert, generating certificates, and installing CA trust are separate steps. Nothing in `npm run dev:https` performs installation, generation, trust-store changes, or phone setup automatically.
 
 Validate changes with:
 
