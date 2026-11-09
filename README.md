@@ -2,6 +2,35 @@
 
 A privacy-conscious React + TypeScript + Vite civic contact tool, initially populated with Oregon's congressional delegation and a congressional leadership campaign.
 
+## Social drafts and account maintenance
+
+The optional **Write a social post** disclosure in section 01 contains a separate, initially empty in-memory draft. It works even without a verified account. Switching officials, platforms, or letter templates retains social text; review recipient references before posting. **Use existing short template** imports only the unchanged rendered House/Senate body and asks before overwriting any nonempty draft. **Reset social draft** clears only this draft, with confirmation when nonempty. Sender fields and handles are never inserted automatically.
+
+Copy and Open are separate actions. Profile/platform URLs contain no draft text; visitors paste, review, and submit on the external platform themselves. Social profiles are not verified constituent correspondence channels. Social posts may be public, platforms have their own privacy practices, and a response is not guaranteed. No SDK, authentication, remote avatar, background API request, persistence, or new dependency is used. Clipboard fallback is best-effort `execCommand('copy')`, with focus/selection restoration and manual-copy guidance on failure; it does not guarantee mobile compatibility.
+
+`SocialAccount` in `src/types/index.ts` distinguishes official-office, personal, campaign, and unknown classifications independently of verification status. Optional `Legislator.socialAccounts` records live alongside the state data, separate from `contacts`. Only verified official-office Bluesky/X records with matching HTTPS profile URLs are rendered. `src/lib/social.ts` contains filtering, URL validation, and counting; `SocialComposer.tsx` reuses `renderBody` and the shared clipboard helper without changing the letter editor.
+
+Bluesky counts [300 Unicode grapheme clusters](https://github.com/bluesky-social/bsky-docs/blob/main/docs/advanced-guides/intent-links.md). `Intl.Segmenter` supplies the count when supported; otherwise the UI explicitly reports exact counting unavailable. X displays guidance for its [standard 280-weighted-character limit](https://docs.x.com/fundamentals/counting-characters), without an inaccurate exact counter. Overlength drafts remain editable/copyable and are never truncated. Final validation and mention recognition belong to the destination platform. Instagram, native sharing, prefilled intents, and social-specific campaign templates are deferred.
+
+### Verification record — 2026-11-09
+
+These government pages publish the recorded official-office identities. Six Bluesky destination profiles were also readable and matched the official identities. X profile pages are not independently inspected successfully in this environment; verification here means the government-published account identity/link, not tested platform functionality, activity, or willingness to accept correspondence. Legacy Twitter links are normalized to X with the same handle.
+
+| Official | Bluesky | X | Government evidence |
+|---|---|---|---|
+| Ron Wyden | `wyden.senate.gov` | Not recorded | [News / Contact-Social](https://www.wyden.senate.gov/news) |
+| Jeff Merkley | Not recorded | `SenJeffMerkley` | [Follow Jeff](https://www.merkley.senate.gov/connect/follow-jeff/) |
+| Suzanne Bonamici | `repbonamici.bsky.social` | Not recorded | [Official website](https://bonamici.house.gov/) |
+| Cliff Bentz | Not recorded | `RepBentz` | [Official website](https://bentz.house.gov/) |
+| Maxine Dexter | `repdexteror.bsky.social` | `repdexteror` | [Official website](https://dexter.house.gov/) |
+| Val Hoyle | `repvalhoyle.bsky.social` | `RepValHoyle` | [Official website](https://hoyle.house.gov/) |
+| Janelle Bynum | `bynum.house.gov` | `repbynum` | [Official website](https://bynum.house.gov/) |
+| Andrea Salinas | `salinas.house.gov` | `repsalinas` | [Official website](https://salinas.house.gov/) |
+
+Unresolved: Wyden/Bonamici X and Merkley/Bentz Bluesky are not established by this review and are omitted, not declared nonexistent. Merkley's `jeff-merkley.bsky.social` appears in third-party listings, but official-office classification was not established from the reviewed government sources; it is not published. No personal/campaign substitute is included. Wyden's separately linked press-office and committee profiles are outside the selected member-profile scope.
+
+Before releases and after officeholder/handle changes, follow the government source and inspect the destination. Verify ownership and official-office classification, record the exact handle/profile URL, source URLs, and `lastVerified` date. A platform badge alone is insufficient. Do not guess missing accounts, infer classification from a name, or mark an account unverified solely because a platform blocks automated inspection when government evidence establishes it. Remove or withhold records whose ownership/classification cannot be substantiated. Keep unresolved findings in maintenance notes rather than displaying them as verified. Tests validate structure and URLs, not real-world ownership; verification is a manual research task with no visitor-triggered network calls.
+
 ## Run
 
 ```bash

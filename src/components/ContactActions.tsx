@@ -2,6 +2,7 @@ import {useState} from 'react';
 import type {Legislator, Verification} from '../types';
 import {contactLabels, formatPhone, materialRestrictions, phoneHref} from '../lib/contacts';
 import {copyPhoneText} from '../lib/clipboard';
+import {officialSocialAccounts, socialPlatforms, type ComposerPlatform} from '../lib/social';
 
 function Sources({verification}: {verification: Verification}) {
   return <>
@@ -12,6 +13,7 @@ function Sources({verification}: {verification: Verification}) {
 
 export default function ContactActions({official, variant = 'directory'}: {official: Legislator; variant?: 'directory' | 'selected'}) {
   const [copyStatus, setCopyStatus] = useState('');
+  const socialAccounts = officialSocialAccounts(official);
   const form = official.contacts.find(c => c.kind === 'contact-form');
   const phone = official.contacts.filter(c => c.kind === 'phone').find(c => c.office === 'washington-dc');
   const website = official.contacts.find(c => c.kind === 'website');
@@ -50,9 +52,16 @@ export default function ContactActions({official, variant = 'directory'}: {offic
       {email && <a href={`mailto:${email.address}`}>Direct email: {email.address}{email.status !== 'verified' && ' (unverified)'}</a>}
       {notices.map((r, i) => <p className="hint contact-notice" key={i}>{r.description}</p>)}
       {form && phone && notices.some(r => r.appliesTo.includes(form.id)) && <p className="hint">The office also publishes the phone number above. A response is not guaranteed.</p>}
+      <div className="social-profiles">
+        <span className="hint">Official-office social profiles (separate from correspondence channels)</span>
+        {socialAccounts.length ? socialAccounts.map(account => <a key={account.id} href={account.profileUrl} target="_blank" rel="noopener noreferrer">
+          {socialPlatforms[account.platform as ComposerPlatform].label}: @{account.handle} ↗
+        </a>) : <span className="hint">No verified official-office Bluesky or Twitter profile recorded.</span>}
+      </div>
       <details className="contact-details">
         <summary>Sources and contact details</summary>
         <p className="contact-sources">Officeholder: <Sources verification={official.identityVerification}/></p>
+        {socialAccounts.map(account => <p key={account.id} className="contact-sources">Official-office social profile @{account.handle}: <Sources verification={account}/></p>)}
         {official.contacts.map(contact => <div key={contact.id}>
           <p className="contact-sources">{contactLabels[contact.kind]}: <Sources verification={contact}/></p>
           {contact.kind === 'contact-form' && <p className="hint">

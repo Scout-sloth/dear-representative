@@ -49,7 +49,7 @@ function copyWithSelection(text: string): boolean {
   }
 }
 
-export async function copyPhoneText(text: string): Promise<boolean> {
+export async function copyText(text: string): Promise<boolean> {
   if (typeof navigator.clipboard?.writeText === 'function') {
     try {
       await navigator.clipboard.writeText(text);
@@ -60,3 +60,6 @@ export async function copyPhoneText(text: string): Promise<boolean> {
   }
   return copyWithSelection(text);
 }
+
+// Preserve the existing phone API while sharing the same selection-safe fallback.
+export const copyPhoneText = copyText;

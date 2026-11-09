@@ -45,7 +45,16 @@ export type ContactRestriction = {
 } & ({status: 'verified'; sourceUrl: string; lastVerified: string} | {
     status: 'unverified' | 'unknown'; sourceUrl?: string; lastVerified: null;
 });
+export type SocialPlatform = 'bluesky' | 'x' | 'instagram';
+export type SocialAccount = Verification & {
+    id: string;
+    platform: SocialPlatform;
+    accountType: 'official-office' | 'personal' | 'campaign' | 'unknown';
+    handle: string;
+    profileUrl: string;
+};
 export interface Legislator {
+    socialAccounts?: SocialAccount[];
     id: string;
     name: string;
     salutation: string;

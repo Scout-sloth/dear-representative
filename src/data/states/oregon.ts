@@ -6,6 +6,20 @@ export const oregon: State = {code: 'OR', name: 'Oregon'};
 export const officials: Legislator[] = [
   {
     "id": "wyden",
+    "socialAccounts": [
+      {
+        "id": "wyden-bluesky",
+        "platform": "bluesky",
+        "accountType": "official-office",
+        "handle": "wyden.senate.gov",
+        "profileUrl": "https://bsky.app/profile/wyden.senate.gov",
+        "status": "verified",
+        "sourceUrls": [
+          "https://www.wyden.senate.gov/news"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Ron Wyden",
     "salutation": "Senator Wyden",
     "state": "OR",
@@ -74,6 +88,20 @@ export const officials: Legislator[] = [
   },
   {
     "id": "merkley",
+    "socialAccounts": [
+      {
+        "id": "merkley-x",
+        "platform": "x",
+        "accountType": "official-office",
+        "handle": "SenJeffMerkley",
+        "profileUrl": "https://x.com/SenJeffMerkley",
+        "status": "verified",
+        "sourceUrls": [
+          "https://www.merkley.senate.gov/connect/follow-jeff/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Jeff Merkley",
     "salutation": "Senator Merkley",
     "state": "OR",
@@ -153,6 +181,20 @@ export const officials: Legislator[] = [
   },
   {
     "id": "bonamici",
+    "socialAccounts": [
+      {
+        "id": "bonamici-bluesky",
+        "platform": "bluesky",
+        "accountType": "official-office",
+        "handle": "repbonamici.bsky.social",
+        "profileUrl": "https://bsky.app/profile/repbonamici.bsky.social",
+        "status": "verified",
+        "sourceUrls": [
+          "https://bonamici.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Suzanne Bonamici",
     "salutation": "Representative Bonamici",
     "state": "OR",
@@ -222,6 +264,20 @@ export const officials: Legislator[] = [
   },
   {
     "id": "bentz",
+    "socialAccounts": [
+      {
+        "id": "bentz-x",
+        "platform": "x",
+        "accountType": "official-office",
+        "handle": "RepBentz",
+        "profileUrl": "https://x.com/RepBentz",
+        "status": "verified",
+        "sourceUrls": [
+          "https://bentz.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Cliff Bentz",
     "salutation": "Representative Bentz",
     "state": "OR",
@@ -302,6 +358,32 @@ export const officials: Legislator[] = [
   },
   {
     "id": "dexter",
+    "socialAccounts": [
+      {
+        "id": "dexter-bluesky",
+        "platform": "bluesky",
+        "accountType": "official-office",
+        "handle": "repdexteror.bsky.social",
+        "profileUrl": "https://bsky.app/profile/repdexteror.bsky.social",
+        "status": "verified",
+        "sourceUrls": [
+          "https://dexter.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      },
+      {
+        "id": "dexter-x",
+        "platform": "x",
+        "accountType": "official-office",
+        "handle": "repdexteror",
+        "profileUrl": "https://x.com/repdexteror",
+        "status": "verified",
+        "sourceUrls": [
+          "https://dexter.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Maxine Dexter",
     "salutation": "Representative Dexter",
     "state": "OR",
@@ -371,6 +453,32 @@ export const officials: Legislator[] = [
   },
   {
     "id": "hoyle",
+    "socialAccounts": [
+      {
+        "id": "hoyle-bluesky",
+        "platform": "bluesky",
+        "accountType": "official-office",
+        "handle": "repvalhoyle.bsky.social",
+        "profileUrl": "https://bsky.app/profile/repvalhoyle.bsky.social",
+        "status": "verified",
+        "sourceUrls": [
+          "https://hoyle.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      },
+      {
+        "id": "hoyle-x",
+        "platform": "x",
+        "accountType": "official-office",
+        "handle": "RepValHoyle",
+        "profileUrl": "https://x.com/RepValHoyle",
+        "status": "verified",
+        "sourceUrls": [
+          "https://hoyle.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Val Hoyle",
     "salutation": "Representative Hoyle",
     "state": "OR",
@@ -440,6 +548,32 @@ export const officials: Legislator[] = [
   },
   {
     "id": "bynum",
+    "socialAccounts": [
+      {
+        "id": "bynum-bluesky",
+        "platform": "bluesky",
+        "accountType": "official-office",
+        "handle": "bynum.house.gov",
+        "profileUrl": "https://bsky.app/profile/bynum.house.gov",
+        "status": "verified",
+        "sourceUrls": [
+          "https://bynum.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      },
+      {
+        "id": "bynum-x",
+        "platform": "x",
+        "accountType": "official-office",
+        "handle": "repbynum",
+        "profileUrl": "https://x.com/repbynum",
+        "status": "verified",
+        "sourceUrls": [
+          "https://bynum.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Janelle Bynum",
     "salutation": "Representative Bynum",
     "state": "OR",
@@ -520,6 +654,32 @@ export const officials: Legislator[] = [
   },
   {
     "id": "salinas",
+    "socialAccounts": [
+      {
+        "id": "salinas-bluesky",
+        "platform": "bluesky",
+        "accountType": "official-office",
+        "handle": "salinas.house.gov",
+        "profileUrl": "https://bsky.app/profile/salinas.house.gov",
+        "status": "verified",
+        "sourceUrls": [
+          "https://salinas.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      },
+      {
+        "id": "salinas-x",
+        "platform": "x",
+        "accountType": "official-office",
+        "handle": "repsalinas",
+        "profileUrl": "https://x.com/repsalinas",
+        "status": "verified",
+        "sourceUrls": [
+          "https://salinas.house.gov/"
+        ],
+        "lastVerified": "2026-11-09"
+      }
+    ],
     "name": "Andrea Salinas",
     "salutation": "Representative Salinas",
     "state": "OR",

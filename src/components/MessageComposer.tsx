@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import ContactActions from './ContactActions';
+import SocialComposer from './SocialComposer';
 import {renderBody, renderCompleteMessage, templateLabels} from '../lib/messages';
 import type {Campaign, Legislator, State, TemplateId} from '../types';
 
@@ -94,6 +95,7 @@ export default function MessageComposer({campaign, officials, state, initialOffi
         <button className="button secondary" onClick={reset}>Reset to Original Template</button>
       </div>
       <ContactActions key={official.id} official={official} variant="selected"/>
+      <SocialComposer campaign={campaign} official={official} state={state}/>
     </section>
   );
 }

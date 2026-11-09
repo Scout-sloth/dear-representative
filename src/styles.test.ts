@@ -25,7 +25,7 @@ describe('semantic theme contrast', () => {
           expect(contrast(palette[foreground], palette[background]), `${foreground} on ${background}`).toBeGreaterThanOrEqual(4.5);
         }
       }
-      for (const [foreground, background] of [['button-text','button'], ['secondary-text','secondary'], ['hero-text','hero'], ['hero-muted','hero'], ['hero-accent','hero']]) {
+      for (const [foreground, background] of [['link','secondary'], ['button-text','button'], ['secondary-text','secondary'], ['hero-text','hero'], ['hero-muted','hero'], ['hero-accent','hero']]) {
         expect(contrast(palette[foreground], palette[background]), `${foreground} on ${background}`).toBeGreaterThanOrEqual(4.5);
       }
     });
