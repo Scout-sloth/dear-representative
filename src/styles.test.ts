@@ -43,7 +43,8 @@ describe('semantic theme contrast', () => {
     expect(css).toContain('color-scheme: light dark');
     expect(palettes).toHaveLength(2);
     expect(Object.keys(palettes[0]).sort()).toEqual(Object.keys(palettes[1]).sort());
-    for (const palette of palettes) expect(palette.section).not.toBe(palette['section-alternate']);
+    // Visual separation target, not a WCAG requirement for decorative backgrounds.
+    for (const palette of palettes) expect(contrast(palette.section, palette['section-alternate'])).toBeGreaterThanOrEqual(1.2);
     for (const [, token] of css.matchAll(/var\(--([\w-]+)\)/g)) expect(palettes[0]).toHaveProperty(token);
   });
 });
