@@ -97,6 +97,8 @@ button,.button{border:1px solid var(--control-border); background:var(--button);
 .petition h3{margin:10px 0 5px; font-size:1rem}
 .petition p{margin:0 0 7px; color:var(--muted); font-size:.87rem}
 .petition small{color:var(--muted)}
+.petition .petition-count{font-weight:700; color:var(--text);}
+.petition .petition-metadata{margin-top:8px;}
 .petition>a{white-space:nowrap; font-size:.87rem}
 footer{padding-top:20px; padding-bottom:40px; color:var(--muted); font-size:.82rem}
 @media(max-width:750px){.directory{grid-template-columns:repeat(2,1fr)}

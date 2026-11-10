@@ -1,9 +1,10 @@
 import {useState} from 'react';
 import type {Petition} from '../types';
+import {signatureSnapshot, signatureSourceLabels, sortPetitions} from '../lib/petitions';
 
 export default function PetitionDirectory({petitions}: {petitions: Petition[]}) {
   const [scope, setScope] = useState('all');
-  const visiblePetitions = petitions.filter(p =>
+  const visiblePetitions = sortPetitions(petitions).filter(p =>
     scope === 'all' || p.scope === scope || (scope !== 'both' && p.scope === 'both'),
   );
 
@@ -24,7 +25,7 @@ export default function PetitionDirectory({petitions}: {petitions: Petition[]}) 
           </select>
         </label>
       </div>
-      <p>External petitions are listed for reference, not endorsed or ranked. Read each petition's text, organizer, and privacy terms before signing. Signature counts are omitted until verified.</p>
+      <p>External petitions are listed for reference, not endorsed. Sorted by recorded signature counts, highest first; unavailable counts follow. Counts are snapshots, not live totals or a measure of accuracy. Read each petition's text, organizer, and privacy terms before signing.</p>
       <div className="petitions">
         {visiblePetitions.map(p => (
           <article className="petition" key={p.id}>
@@ -32,7 +33,15 @@ export default function PetitionDirectory({petitions}: {petitions: Petition[]}) 
               <span className="tag">{p.scope === 'both' ? 'Both chambers' : p.scope === 'house' ? 'House' : 'Senate'}</span>
               <h3>{p.title}</h3>
               <p>{p.description}</p>
-              <small>{p.platform} · Signature count not verified</small>
+              <p className="petition-count">{signatureSnapshot(p) !== undefined
+                ? `${signatureSnapshot(p)!.toLocaleString('en-US')} signatures`
+                : 'Signature count unavailable or unverified'}</p>
+              <small>{p.platform}{p.organizer ? ` · Organizer (display name): ${p.organizer}` : ' · Organizer unavailable'}</small>
+              {signatureSnapshot(p) !== undefined && <p className="hint petition-metadata">
+                Snapshot · Checked <time dateTime={p.checkedAt}>{p.checkedAt}</time> (UTC) · {signatureSourceLabels[p.signatureVerification!]}.
+                {' '}<a href={p.signatureSourceUrl} target="_blank" rel="noopener noreferrer">Count source</a>
+              </p>}
+              {p.verification?.status !== 'verified' && <p className="hint">Petition title and destination not verified.</p>}
             </div>
             <a href={p.url} target="_blank" rel="noopener noreferrer">View petition ↗</a>
           </article>

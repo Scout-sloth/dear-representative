@@ -232,7 +232,7 @@ Theme tests calculate text contrast (at least 4.5:1) and meaningful control/focu
 ## Before public launch
 
 1. Recheck officeholders, contact sources and verification dates against official House and Senate websites. Published-link verification is separate from form functionality testing.
-2. Check each petition link, organizer, current wording, and signature count. No signature counts are displayed by default.
+2. Check each petition link, organizer display name, current wording, and signature count. See the [petition verification report](docs/petition-verification.md) for the recorded snapshots and limitations.
 3. Add district lookup if needed. ZIP codes alone do not uniquely identify congressional districts; use an authoritative address lookup rather than guessing.
 4. Add an accessibility review, browser testing, and optional automated link checks.
 5. Never claim messages or signatures were submitted by this site. Users must submit through the linked external services.

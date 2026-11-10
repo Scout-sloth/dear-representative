@@ -75,7 +75,11 @@ export type Petition = {
     scope: 'house' | 'senate' | 'both';
     organizer?: string;
     signatures?: number;
+    // Date the count evidence was reviewed (UTC), not a promise of a live total.
     checkedAt?: string;
+    signatureSourceUrl?: string;
+    signatureVerification?: 'direct' | 'cached' | 'third-party' | 'unverified';
+    verification?: Verification;
     description: string;
 };
 export type TemplateId = 'short' | 'standard' | 'detailed';
