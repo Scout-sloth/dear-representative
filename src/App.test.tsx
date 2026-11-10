@@ -52,14 +52,14 @@ describe('composer', () => {
     change(city(), 'Salem');
     change(editor(), 'Personal edits');
     change(screen.getByLabelText('Congressional office'), 'wyden');
-    expect(editor().value).toBe(baseline.senate.standard);
+    expect(editor().value).toBe('Personal edits');
     change(editor(), 'More edits');
     change(screen.getByLabelText('Starting template'), 'detailed');
-    expect(editor().value).toBe(baseline.senate.detailed);
+    expect(editor().value).toBe('More edits');
     change(editor(), 'Final edits');
     fireEvent.click(screen.getByRole('button', {name: 'Copy complete message'}));
     await screen.findByRole('button', {name: 'Copied!'});
-    fireEvent.click(screen.getByRole('button', {name: 'Reset to Original Template'}));
+    fireEvent.click(screen.getByRole('button', {name: 'Reset to selected template'}));
     expect(editor().value).toBe(baseline.senate.detailed);
     expect(name().value).toBe('Alex');
     expect(city().value).toBe('Salem');
@@ -69,7 +69,7 @@ describe('composer', () => {
       `Subject: Question about congressional leadership — Ron Wyden\n\n${baseline.senate.detailed}\n\nSincerely,\nAlex\nSalem, Oregon`,
     ));
     change(screen.getByLabelText('Congressional office'), 'bonamici');
-    expect(editor().value).toBe(baseline.house.detailed);
+    expect(editor().value).toBe(baseline.senate.detailed);
     expect(screen.getByRole('button', {name: 'Copy complete message'})).toBeTruthy();
   });
 
@@ -117,6 +117,6 @@ describe('composer', () => {
     expect(screen.getByRole('button', {name: 'Copy complete message'})).toBeTruthy();
     change(screen.getByLabelText('Congressional office'), 'wyden');
     expect(screen.queryByText('Number copied.')).toBeNull();
-    expect(editor().value).toBe(baseline.senate.standard);
+    expect(editor().value).toBe('My draft');
   });
 });

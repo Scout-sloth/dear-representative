@@ -63,7 +63,7 @@ it('starts empty and retains social text independently through official, templat
   expect(editor().getAttribute('aria-describedby')).toContain('social-limit');
 });
 
-it('imports only rendered House/Senate bodies, confirms overwrites, and resets only the social draft', () => {
+it('imports only rendered House/Senate bodies and offers Undo without confirmation', () => {
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
   render(<App/>); openComposer();
   change('Your name (optional)', 'Private Name');
@@ -75,21 +75,24 @@ it('imports only rendered House/Senate bodies, confirms overwrites, and resets o
   change('Your social draft', 'Keep me');
   change('Congressional office', 'wyden');
   fireEvent.click(screen.getByRole('button', {name:'Use existing short template'}));
+  expect(editor().value).toBe(renderBody(campaign, officials[0], oregon, 'short'));
+  fireEvent.click(screen.getByRole('button', {name:'Undo social draft replacement'}));
   expect(editor().value).toBe('Keep me');
-  confirm.mockReturnValue(true);
+  expect(document.activeElement).toBe(editor());
   fireEvent.click(screen.getByRole('button', {name:'Use existing short template'}));
   expect(editor().value).toBe(renderBody(campaign, officials[0], oregon, 'short'));
   expect(editor().value).not.toContain('Private');
   const letter = screen.getByLabelText<HTMLTextAreaElement>('Your message').value;
-  confirm.mockReturnValue(false);
   fireEvent.click(screen.getByRole('button', {name:'Reset social draft'}));
-  expect(editor().value).not.toBe('');
-  confirm.mockReturnValue(true);
+  expect(editor().value).toBe('');
+  fireEvent.click(screen.getByRole('button', {name:'Undo social draft replacement'}));
+  expect(editor().value).toBe(renderBody(campaign, officials[0], oregon, 'short'));
   fireEvent.click(screen.getByRole('button', {name:'Reset social draft'}));
   expect(editor().value).toBe('');
   expect(screen.getByLabelText<HTMLTextAreaElement>('Your message').value).toBe(letter);
   expect(screen.getByLabelText<HTMLInputElement>('Your name (optional)').value).toBe('Private Name');
   expect(screen.getByLabelText<HTMLInputElement>('City (optional)').value).toBe('Private City');
+  expect(confirm).not.toHaveBeenCalled();
 });
 
 it('works without an account, never truncates, and copies exactly without putting drafts into links', async () => {
