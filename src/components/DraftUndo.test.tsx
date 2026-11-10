@@ -28,7 +28,6 @@ it('offers one letter reset and leaves matching text, clipboard feedback and Und
 it('keeps independent Undo snapshots through selection changes, elapsed time and sender edits', () => {
   vi.useFakeTimers();
   render(<App/>);
-  fireEvent.click(screen.getByText('Write a social post'));
   change('Your message', '  Exact letter\n👨‍👩‍👧‍👦  ');
   change('Your social draft', 'Exact social\ne\u0301');
   fireEvent.click(screen.getByRole('button', {name:'Reset to selected template'}));
@@ -38,7 +37,6 @@ it('keeps independent Undo snapshots through selection changes, elapsed time and
   change('Social platform', 'x');
   change('Your name (optional)', 'Alex');
   change('City (optional)', 'Salem');
-  fireEvent.click(screen.getByText('Write a social post'));
   vi.advanceTimersByTime(60 * 60 * 1000);
   const letterUndo = screen.getByRole('button', {name:'Undo letter draft replacement'});
   expect(letterUndo.previousElementSibling?.textContent).toBe('Reset to selected template');
@@ -54,7 +52,6 @@ it('keeps independent Undo snapshots through selection changes, elapsed time and
   fireEvent.click(letterUndo);
   expect(text('Your message')).toBe('  Exact letter\n👨‍👩‍👧‍👦  ');
   expect(document.activeElement).toBe(screen.getByLabelText('Your message'));
-  fireEvent.click(screen.getByText('Write a social post'));
   const socialUndo = screen.getByRole('button', {name:'Undo social draft replacement'});
   expect(socialUndo.parentElement).toBe(screen.getByRole('button', {name:'Copy social draft'}).parentElement);
   expect(socialUndo.previousElementSibling?.textContent).toBe('Reset social draft');
@@ -86,7 +83,6 @@ it('retains pristine and intentionally emptied drafts until explicit replacement
 
 it('ends Undo after another edit without affecting the other composer', () => {
   render(<App/>);
-  fireEvent.click(screen.getByText('Write a social post'));
   change('Your message', 'Letter');
   change('Your social draft', 'Social');
   fireEvent.click(screen.getByRole('button', {name:'Reset to selected template'}));

@@ -20,14 +20,49 @@ describe('composer', () => {
     expect(disclosure.textContent).toContain('External congressional and petition websites');
     expect(disclosure.textContent).toContain('technical request information and access logs');
     expect(within(disclosure).getByRole('link', {name:'GitHub’s privacy statement'}).getAttribute('href')).toBe('https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement');
-    for (const name of ['Message composer','Oregon congressional delegation','Petition directory']) {
+    for (const name of ['Email, Form & Phone','Social','Petitions','Directory']) {
       expect(screen.getByRole('region', {name}).parentElement?.tagName).toBe('MAIN');
     }
   });
+  it('orders four full-width sections with matching navigation targets and a permanent Social section', () => {
+    render(<App/>);
+    const sections = Array.from(document.querySelectorAll('main > section'));
+    expect(sections.map(s => s.id)).toEqual(['contact','social','petitions','directory']);
+    expect(sections.map(s => s.querySelector('h2')?.textContent?.trim())).toEqual(['Email, Form & Phone','Social','Petitions','Directory']);
+    const navigation = screen.getByRole('navigation', {name:'Page sections'});
+    expect(within(navigation).getAllByRole('link').map(a => a.getAttribute('href'))).toEqual(['#contact','#social','#petitions','#directory']);
+    const social = screen.getByRole('region', {name:'Social'});
+    expect(social.querySelector('details, summary')).toBeNull();
+    change(screen.getByLabelText('Your social draft'), 'Retain my draft');
+    change(screen.getByLabelText('Congressional office'), 'wyden');
+    expect(screen.getByLabelText<HTMLTextAreaElement>('Your social draft').value).toBe('Retain my draft');
+  });
+
+  it('has one editable letter field and a collapsed read-only complete preview matching copied text', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', {clipboard:{writeText}});
+    render(<App/>);
+    const section = screen.getByRole('region', {name:'Email, Form & Phone'});
+    expect(section.querySelectorAll('textarea')).toHaveLength(1);
+    expect(section.querySelectorAll('[contenteditable="true"]')).toHaveLength(0);
+    const summary = screen.getByText('Preview complete message');
+    const preview = summary.closest('details')!;
+    expect(preview.open).toBe(false);
+    change(name(), 'Alex'); change(city(), 'Salem');
+    fireEvent.click(screen.getByRole('button', {name:'Copy complete message'}));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`Subject: Question about congressional leadership — Suzanne Bonamici\n\n${baseline.house.standard}\n\nSincerely,\nAlex\nSalem, Oregon`));
+    expect(preview.open).toBe(false);
+    fireEvent.click(summary);
+    expect(preview.open).toBe(true);
+    expect(preview.querySelector('pre')?.textContent).toBe(writeText.mock.calls[0][0]);
+    expect(preview.textContent).toContain('Dear Representative Bonamici,');
+    fireEvent.click(summary);
+    expect(preview.open).toBe(false);
+  });
   it('keeps selected identity visible and shares the same phone actions with the directory', () => {
     render(<App/>);
-    const composer = screen.getByRole('region', {name:'Message composer'});
-    const directory = screen.getByRole('region', {name:'Oregon congressional delegation'});
+    const composer = screen.getByRole('region', {name:'Email, Form & Phone'});
+    const directory = screen.getByRole('region', {name:'Directory'});
     expect(within(composer).getByRole('heading', {name:'Suzanne Bonamici'})).toBeTruthy();
     for (const section of [composer, directory]) {
       const contact = within(section).getByRole('group', {name:'Contact Suzanne Bonamici'});
@@ -91,6 +126,7 @@ describe('composer', () => {
     render(<App/>);
     fireEvent.click(screen.getByRole('button', {name: 'Copy complete message'}));
     await waitFor(() => expect(alert).toHaveBeenCalledWith('Clipboard access unavailable. Select and copy the preview text instead.'));
+    expect(screen.getByText('Preview complete message').closest('details')?.open).toBe(true);
     expect(editor().value).toBe(baseline.house.standard);
   });
 

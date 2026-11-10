@@ -2,7 +2,6 @@ import {useReducer, useRef, useState} from 'react';
 import {createDraft, draftReducer, type DraftOrigin} from '../lib/draft';
 import DraftUndo, {DraftUndoStatus} from './DraftUndo';
 import ContactActions from './ContactActions';
-import SocialComposer from './SocialComposer';
 import {renderBody, renderCompleteMessage, templateLabels} from '../lib/messages';
 import type {Campaign, Legislator, State, TemplateId} from '../types';
 
@@ -10,16 +9,17 @@ type Props = {
   campaign: Campaign;
   officials: Legislator[];
   state: State;
-  initialOfficialId: string;
+  officialId: string;
+  onOfficialChange: (id: string) => void;
 };
 
-export default function MessageComposer({campaign, officials, state, initialOfficialId}: Props) {
-  const [officialId, setOfficialId] = useState(initialOfficialId);
+export default function MessageComposer({campaign, officials, state, officialId, onOfficialChange}: Props) {
   const [kind, setKind] = useState<TemplateId>('standard');
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const editor = useRef<HTMLTextAreaElement>(null);
+  const preview = useRef<HTMLDetailsElement>(null);
   const official = officials.find(o => o.id === officialId)!;
 
   const origin: DraftOrigin = {campaignId: campaign.id, officialId, chamber: official.chamber, stateCode: state.code, template: kind};
@@ -46,23 +46,24 @@ export default function MessageComposer({campaign, officials, state, initialOffi
       setCopiedText(full);
     } catch {
       setCopiedText(null);
+      if (preview.current) preview.current.open = true;
       alert('Clipboard access unavailable. Select and copy the preview text instead.');
     }
   }
 
   return (
-    <section className="panel" aria-labelledby="compose-title">
+    <section id="contact" className="panel" aria-labelledby="compose-title">
       <div className="section-heading">
         <div>
-          <div className="eyebrow">01 / WRITE</div>
-          <h2 id="compose-title">Message composer</h2>
+          <div className="eyebrow">01 / EMAIL, FORM &amp; PHONE</div>
+          <h2 id="compose-title">Email, Form &amp; Phone</h2>
         </div>
         <span className="pill">Private in your browser</span>
       </div>
       <div className="fields">
         <label>
           Congressional office
-          <select value={officialId} onChange={e => setOfficialId(e.target.value)}>
+          <select value={officialId} onChange={e => onOfficialChange(e.target.value)}>
             {officials.map(o => (
               <option key={o.id} value={o.id}>
                 {o.name} — {o.chamber === 'senate' ? 'Senate' : `House ${o.state}-${o.district}`}
@@ -95,10 +96,11 @@ export default function MessageComposer({campaign, officials, state, initialOffi
           <input value={city} onChange={e => setCity(e.target.value)} placeholder={`City in ${state.name}`}/>
         </label>
       </div>
-      <div className="preview">
-        <div className="preview-title">Copy-ready preview <span>{full.length.toLocaleString()} characters</span></div>
+      <details ref={preview} className="preview">
+        <summary>Preview complete message</summary>
+        <div className="preview-title"><span>{full.length.toLocaleString()} characters</span></div>
         <pre>{full}</pre>
-      </div>
+      </details>
       <div className="actions">
         <button onClick={copy}>{copiedText === full ? 'Copied!' : 'Copy complete message'}</button>
         <button className="button secondary" onClick={reset}>Reset to selected template</button>
@@ -106,7 +108,6 @@ export default function MessageComposer({campaign, officials, state, initialOffi
       </div>
       <DraftUndoStatus available={draft.undo !== null} label="letter"/>
       <ContactActions key={official.id} official={official} variant="selected"/>
-      <SocialComposer campaign={campaign} official={official} state={state}/>
     </section>
   );
 }

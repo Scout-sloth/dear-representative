@@ -67,6 +67,11 @@ a:hover{text-decoration-thickness:2px}
 .hero p{max-width:680px; color:var(--hero-muted); font-size:1.13rem; line-height:1.6}
 .eyebrow{font-size:.72rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:var(--accent-text)}
 .hero .eyebrow{color:var(--hero-accent)}
+.section-nav{display:flex; flex-wrap:wrap; gap:12px 24px; margin-top:24px;}
+.section-nav a{color:var(--hero-text);}
+.section-nav a:focus-visible{outline-color:var(--hero-accent);}
+.preview summary{cursor:pointer; color:var(--link); font-weight:700;}
+.preview[open] summary{margin-bottom:12px;}
 /* Full-width section bands; padding retains the existing centered reading width. */
 main.wrap{max-width:none; margin:0; padding:0}
 .panel{background:var(--section); border-bottom:1px solid var(--border); padding:30px max(54px, calc((100% - 930px) / 2)); margin:0}
@@ -169,20 +174,10 @@ summary {text-decoration:underline; text-underline-offset:3px;}
 .fields > label {min-width:0;}
 .draft-undo-status:not(:empty) {margin-top:12px;}
 .social-profiles {display:flex; flex-direction:column; gap:6px; font-size:.83rem; overflow-wrap:anywhere;}
-.social-composer {margin-top:22px; padding:18px; border:1px solid var(--border); border-radius:10px; background:var(--surface);}
-.social-composer > summary {display:flex; align-items:center; gap:10px; cursor:pointer; color:var(--link); font-weight:750; list-style:none; margin:-18px; padding:18px; border-radius:9px; background:var(--secondary); text-decoration:none;}
-.social-composer > summary::-webkit-details-marker {display:none;}
-.social-composer[open] > summary {margin-bottom:18px; border-radius:9px 9px 0 0;}
-.social-composer > summary:hover {background:var(--selected);}
-.social-composer > summary:focus-visible {outline:3px solid var(--focus); outline-offset:3px;}
 .social-heading-content {display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; min-width:0;}
-.social-heading-content > span:first-child {text-decoration:underline; text-underline-offset:3px;}
-.social-composer > summary:hover .social-heading-content > span:first-child {text-decoration-thickness:2px;}
-.social-heading-icons {display:inline-flex; align-items:center; gap:10px; flex-shrink:0;}
+.social-heading-icons {color:var(--link); display:inline-flex; align-items:center; gap:10px; flex-shrink:0;}
 .social-heading-icons > span {display:flex;}
 .social-heading-icons svg {display:block; height:32px; width:auto;}
-.social-disclosure-arrow {font-size:1.5rem; line-height:1; flex-shrink:0;}
-.social-composer[open] .social-disclosure-arrow {transform:rotate(90deg);}
 @media(max-width:520px) {.social-heading-icons svg {height:28px;}}
 .social-composer > label {margin-top:16px;}
 .social-composer button:disabled {opacity:.65; cursor:default;}

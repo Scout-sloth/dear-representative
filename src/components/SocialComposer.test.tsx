@@ -9,19 +9,17 @@ import blueskyArtwork from '../assets/social/dear-representative-social-icons/bl
 import twitterArtwork from '../assets/social/dear-representative-social-icons/twitter.svg?raw';
 
 afterEach(() => {cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); Reflect.deleteProperty(document, 'execCommand');});
-function openComposer() {
-  fireEvent.click(screen.getByText('Write a social post'));
-}
 const editor = () => screen.getByLabelText<HTMLTextAreaElement>('Your social draft');
 const change = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), {target:{value}});
 
-it('keeps a native collapsed disclosure with original decorative artwork inside its clickable summary', () => {
-  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>);
-  const summary = screen.getByText('Write a social post').closest('summary')!;
-  const details = summary.parentElement as HTMLDetailsElement;
-  expect(details.open).toBe(false);
-  expect(summary.querySelectorAll('a, button, [tabindex]')).toHaveLength(0);
-  const icons = summary.querySelectorAll('svg');
+it('shows original decorative artwork in the permanent Social section heading', () => {
+  render(<App/>);
+  const section = screen.getByRole('region', {name:'Social'});
+  const heading = within(section).getByRole('heading', {name:'Social', level:2});
+  expect(section.querySelector('details, summary, [aria-expanded]')).toBeNull();
+  expect(heading.querySelector('a, button, [tabindex]')).toBeNull();
+  expect(within(section).getByLabelText('Your social draft')).toBeTruthy();
+  const icons = heading.querySelectorAll('svg');
   expect(icons).toHaveLength(2);
   for (const [i, artwork] of [blueskyArtwork, twitterArtwork].entries()) {
     const original = new DOMParser().parseFromString(artwork, 'image/svg+xml').documentElement;
@@ -31,14 +29,10 @@ it('keeps a native collapsed disclosure with original decorative artwork inside 
     expect(icons[i].getAttribute('aria-hidden')).toBe('true');
     expect(icons[i].closest('.social-heading-icons')?.getAttribute('aria-hidden')).toBe('true');
   }
-  fireEvent.click(icons[0]);
-  expect(details.open).toBe(true);
-  fireEvent.click(summary);
-  expect(details.open).toBe(false);
 });
 
 it('uses Twitter labels while preserving the internal identifier and profile destination', () => {
-  render(<App/>); openComposer();
+  render(<App/>);
   expect(screen.getByRole('option', {name:'Twitter'}).getAttribute('value')).toBe('x');
   change('Social platform', 'x');
   expect(screen.getByText(/Twitter has a standard limit of 280 weighted characters/)).toBeTruthy();
@@ -48,7 +42,7 @@ it('uses Twitter labels while preserving the internal identifier and profile des
 });
 
 it('starts empty and retains social text independently through official, template and platform changes', () => {
-  render(<App/>); openComposer();
+  render(<App/>);
   expect(editor().value).toBe('');
   change('Your social draft', 'Keep my @recipient and words');
   change('Your name (optional)', 'Private Name');
@@ -65,7 +59,7 @@ it('starts empty and retains social text independently through official, templat
 
 it('imports only rendered House/Senate bodies and offers Undo without confirmation', () => {
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
-  render(<App/>); openComposer();
+  render(<App/>);
   change('Your name (optional)', 'Private Name');
   change('City (optional)', 'Private City');
   change('Your message', 'Letter only');
@@ -98,7 +92,7 @@ it('imports only rendered House/Senate bodies and offers Undo without confirmati
 it('works without an account, never truncates, and copies exactly without putting drafts into links', async () => {
   const writeText = vi.fn().mockResolvedValue(undefined);
   vi.stubGlobal('navigator', {clipboard:{writeText}});
-  render(<SocialComposer campaign={campaign} official={{...officials[0], socialAccounts:[]}} state={oregon}/>); openComposer();
+  render(<SocialComposer campaign={campaign} official={{...officials[0], socialAccounts:[]}} state={oregon}/>);
   const text = '👨‍👩‍👧‍👦'.repeat(301) + '?private=secret&name=Alex';
   change('Your social draft', text);
   expect(screen.getByText(/over the Bluesky limit/)).toBeTruthy();
@@ -116,7 +110,7 @@ it('works without an account, never truncates, and copies exactly without puttin
 it('restores textarea focus and selection and removes temporary controls when fallback copying fails', async () => {
   vi.stubGlobal('navigator', {});
   Object.defineProperty(document, 'execCommand', {configurable:true, value:vi.fn(() => {throw new Error('denied');})});
-  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>); openComposer();
+  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>);
   change('Your social draft', 'copy my words');
   editor().focus(); editor().setSelectionRange(2, 6, 'backward');
   fireEvent.click(screen.getByRole('button', {name:'Copy social draft'}));
@@ -128,7 +122,7 @@ it('restores textarea focus and selection and removes temporary controls when fa
 
 it('keeps social verification sources accessible in the existing details', () => {
   render(<App/>);
-  const region = screen.getByRole('region', {name:'Message composer'});
+  const region = screen.getByRole('region', {name:'Email, Form & Phone'});
   const contact = within(region).getByRole('group', {name:'Contact Suzanne Bonamici'});
   const profile = within(contact).getByRole('link', {name:/Bluesky: @repbonamici/});
   expect(profile.closest('details')).toBeNull();
@@ -140,7 +134,7 @@ it('keeps social verification sources accessible in the existing details', () =>
 
 it('labels unavailable exact counting and keeps the draft usable', () => {
   vi.spyOn(Intl, 'Segmenter', 'get').mockReturnValue(undefined as never);
-  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>); openComposer();
+  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>);
   change('Your social draft', '👨‍👩‍👧‍👦');
   expect(screen.getByText(/Exact counting is unavailable/)).toBeTruthy();
   expect(editor().value).toBe('👨‍👩‍👧‍👦');
@@ -150,7 +144,7 @@ it('labels unavailable exact counting and keeps the draft usable', () => {
 it('does not report an old clipboard operation as copying an edited draft', async () => {
   let finish!: () => void;
   vi.stubGlobal('navigator', {clipboard:{writeText: () => new Promise<void>(resolve => {finish = resolve;})}});
-  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>); openComposer();
+  render(<SocialComposer campaign={campaign} official={officials[0]} state={oregon}/>);
   change('Your social draft', 'Old text');
   fireEvent.click(screen.getByRole('button', {name:'Copy social draft'}));
   change('Your social draft', 'New text');

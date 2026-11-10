@@ -9,11 +9,11 @@ export default function PetitionDirectory({petitions}: {petitions: Petition[]}) 
   );
 
   return (
-    <section className="panel" aria-labelledby="petitions-title">
+    <section id="petitions" className="panel" aria-labelledby="petitions-title">
       <div className="section-heading">
         <div>
           <div className="eyebrow">03 / PETITIONS</div>
-          <h2 id="petitions-title">Petition directory</h2>
+          <h2 id="petitions-title">Petitions</h2>
         </div>
         <label className="filter">
           Filter

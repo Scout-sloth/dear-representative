@@ -5,8 +5,6 @@ import type {Campaign, Legislator, State} from '../types';
 import {renderBody} from '../lib/messages';
 import {copyText} from '../lib/clipboard';
 import {countGraphemes, socialPlatforms, type ComposerPlatform} from '../lib/social';
-import blueskyIcon from '../assets/social/dear-representative-social-icons/bluesky.svg?raw';
-import twitterIcon from '../assets/social/dear-representative-social-icons/twitter.svg?raw';
 
 export default function SocialComposer({campaign, official, state}: {campaign: Campaign; official: Legislator; state: State}) {
   const [platform, setPlatform] = useState<ComposerPlatform>('bluesky');
@@ -45,18 +43,7 @@ export default function SocialComposer({campaign, official, state}: {campaign: C
     if (revision.current === copiedRevision) setStatus(copied ? 'Social draft copied.' : 'Copy unavailable. Select and copy the social draft manually.');
   }
 
-  return <details className="social-composer">
-    <summary>
-      <span className="social-disclosure-arrow" aria-hidden="true">›</span>
-      <span className="social-heading-content">
-        <span>Write a social post</span>
-        {/* Trusted local artwork only; inline SVG preserves currentColor and original paths. */}
-        <span className="social-heading-icons" aria-hidden="true">
-          <span dangerouslySetInnerHTML={{__html: blueskyIcon}}/>
-          <span dangerouslySetInnerHTML={{__html: twitterIcon}}/>
-        </span>
-      </span>
-    </summary>
+  return <div className="social-composer">
     <p className="hint">Social posts may be public. Social profiles are separate from congressional correspondence channels; a response is not guaranteed. External platforms have their own privacy practices.</p>
     <p className="hint" id="social-recipient">Selected office: {official.name}. Your social draft is retained when switching officials or platforms. Review recipient references and mentions before posting.</p>
     <label>Social platform
@@ -82,5 +69,5 @@ export default function SocialComposer({campaign, official, state}: {campaign: C
     <DraftUndoStatus available={draftState.undo !== null} label="social"/>
     <p className="hint" id="social-open">Copy places text on your device clipboard. Opening a platform does not send your draft. Paste, review, and submit there yourself.</p>
     <p className="hint" role="status" aria-live="polite">{status}</p>
-  </details>;
+  </div>;
 }

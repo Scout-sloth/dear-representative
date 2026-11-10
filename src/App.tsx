@@ -1,4 +1,8 @@
+import blueskyIcon from './assets/social/dear-representative-social-icons/bluesky.svg?raw';
+import twitterIcon from './assets/social/dear-representative-social-icons/twitter.svg?raw';
 import MessageComposer from './components/MessageComposer';
+import {useState} from 'react';
+import SocialComposer from './components/SocialComposer';
 import DelegationDirectory from './components/DelegationDirectory';
 import PetitionDirectory from './components/PetitionDirectory';
 import {campaigns} from './campaigns';
@@ -8,6 +12,8 @@ export default function App() {
   const state = states[0];
   const campaign = campaigns[0];
   const officials = legislators.filter(official => official.state === state.code);
+  const [officialId, setOfficialId] = useState('bonamici');
+  const official = officials.find(o => o.id === officialId)!;
 
   return (
     <div className="site">
@@ -16,12 +22,29 @@ export default function App() {
           <div className="eyebrow">{state.name.toUpperCase()} · CIVIC CONTACT</div>
           <h1>Make your voice heard.</h1>
           <p>Find official congressional contact channels, write your own message, and explore public petitions. Your message stays in your browser. Nothing is submitted automatically.</p>
+          <nav className="section-nav" aria-label="Page sections">
+            <a href="#contact">01 / Email, Form &amp; Phone</a>
+            <a href="#social">02 / Social</a>
+            <a href="#petitions">03 / Petitions</a>
+            <a href="#directory">04 / Directory</a>
+          </nav>
         </div>
       </header>
       <main className="wrap">
-        <MessageComposer campaign={campaign} officials={officials} state={state} initialOfficialId="bonamici"/>
-        <DelegationDirectory officials={officials} state={state}/>
+        <MessageComposer campaign={campaign} officials={officials} state={state} officialId={officialId} onOfficialChange={setOfficialId}/>
+        <section id="social" className="panel" aria-labelledby="social-title">
+          <div className="eyebrow">02 / SOCIAL</div>
+          <h2 id="social-title" className="social-heading-content">Social
+            {/* Trusted local artwork only; preserve currentColor and original paths. */}
+            <span className="social-heading-icons" aria-hidden="true">
+              <span dangerouslySetInnerHTML={{__html: blueskyIcon}}/>
+              <span dangerouslySetInnerHTML={{__html: twitterIcon}}/>
+            </span>
+          </h2>
+          <SocialComposer campaign={campaign} official={official} state={state}/>
+        </section>
         <PetitionDirectory petitions={campaign.petitions}/>
+        <DelegationDirectory officials={officials} state={state}/>
       </main>
       <footer className="wrap">
         <section className="privacy-disclosure" aria-labelledby="privacy-title">
