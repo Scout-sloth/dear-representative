@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, type ReactNode} from 'react';
 import type {Legislator, Verification} from '../types';
 import {contactLabels, formatPhone, materialRestrictions, phoneHref} from '../lib/contacts';
 import {copyPhoneText} from '../lib/clipboard';
@@ -11,11 +11,12 @@ function Sources({verification}: {verification: Verification}) {
   </>;
 }
 
-export default function ContactActions({official, variant = 'directory'}: {official: Legislator; variant?: 'directory' | 'selected'}) {
+export default function ContactActions({official, variant = 'directory', children}: {children?: ReactNode; official: Legislator; variant?: 'directory' | 'selected' | 'compact'}) {
+  const compact = variant === 'compact';
   const [copyStatus, setCopyStatus] = useState('');
   const socialAccounts = officialSocialAccounts(official);
-  const form = official.contacts.find(c => c.kind === 'contact-form');
-  const phone = official.contacts.filter(c => c.kind === 'phone').find(c => c.office === 'washington-dc');
+  const form = official.contacts.filter(c => c.kind === 'contact-form').find(c => !compact || c.status === 'verified');
+  const phone = official.contacts.filter(c => c.kind === 'phone').find(c => c.office === 'washington-dc' && (!compact || c.status === 'verified'));
   const website = official.contacts.find(c => c.kind === 'website');
   const email = official.contacts.find(c => c.kind === 'email');
   const notices = official.contactRestrictions.filter(r =>
@@ -29,37 +30,46 @@ export default function ContactActions({official, variant = 'directory'}: {offic
     setCopyStatus(copied ? 'Number copied.' : 'Copy unavailable. Select and copy the displayed number, or press and hold it on your phone.');
   }
 
+  const socialProfiles = (<div className="social-profiles">
+        <span className="hint">Official-office social profiles (separate from correspondence channels)</span>
+        {socialAccounts.length ? socialAccounts.map(account => <a key={account.id} href={account.profileUrl} target="_blank" rel="noopener noreferrer">
+          {socialPlatforms[account.platform as ComposerPlatform].label}: @{account.handle} ↗
+        </a>) : <span className="hint">No verified official-office Bluesky or Twitter profile recorded.</span>}
+      </div>);
+
   return (
     <div className={`contact-actions contact-actions--${variant}`} role="group" aria-label={`Contact ${official.name}`}>
+      {compact && <div className="selected-contact-heading"><h4>{official.name}</h4><p>{official.chamber === 'senate' ? 'U.S. Senator' : `U.S. Representative · ${official.state}-${official.district}`}</p></div>}
       {variant === 'selected' && <div className="selected-contact-heading">
         <div className="selected-contact-label">Selected representative</div>
         <h3>{official.name}</h3>
         <p>{official.chamber === 'senate' ? 'U.S. Senator' : `U.S. Representative · ${official.state}-${official.district}`}</p>
       </div>}
-      {form ? <a className="contact-primary" href={form.url} target="_blank" rel="noopener noreferrer">
-        Official contact form ↗{form.status !== 'verified' && ' (unverified link)'}
+      {children}
+      {form ? <a className={compact ? "button contact-primary" : "contact-primary"} aria-label={compact ? `Open official form for ${official.name}` : undefined} href={form.url} target="_blank" rel="noopener noreferrer">
+        {compact ? 'Open official form ↗' : 'Official contact form ↗'}{form.status !== 'verified' && ' (unverified link)'}
       </a> : <p className="hint">Contact-form URL not verified.</p>}
       {phone ? <div className="contact-phone">
         <span className="contact-location">Washington, D.C.</span>
         <div className="contact-phone-actions">
-          <a className="contact-phone-link" href={phoneHref(phone.number)} aria-label={`${formatPhone(phone.number)} — Call ${official.name}'s Washington, D.C. office`}>{formatPhone(phone.number)}</a>
+          <a className={compact ? "button secondary contact-phone-link" : "contact-phone-link"} href={phoneHref(phone.number)} aria-label={`${formatPhone(phone.number)} — Call ${official.name}'s Washington, D.C. office`}>{compact && 'Call: '}{formatPhone(phone.number)}</a>
           <button type="button" className="button secondary" onClick={copyPhone} aria-label={`Copy ${official.name}'s Washington, D.C. phone number`}>Copy</button>
         </div>
         {phone.status !== 'verified' && <span className="hint">Phone number unverified</span>}
         <span className="hint copy-status" role="status" aria-live="polite" aria-atomic="true">{copyStatus}</span>
       </div> : <p className="hint">Washington, D.C. phone number not verified.</p>}
-      {website && <a href={website.url} target="_blank" rel="noopener noreferrer">Official website ↗{website.status !== 'verified' && ' (unverified link)'}</a>}
-      {email && <a href={`mailto:${email.address}`}>Direct email: {email.address}{email.status !== 'verified' && ' (unverified)'}</a>}
-      {notices.map((r, i) => <p className="hint contact-notice" key={i}>{r.description}</p>)}
-      {form && phone && notices.some(r => r.appliesTo.includes(form.id)) && <p className="hint">The office also publishes the phone number above. A response is not guaranteed.</p>}
-      <div className="social-profiles">
-        <span className="hint">Official-office social profiles (separate from correspondence channels)</span>
-        {socialAccounts.length ? socialAccounts.map(account => <a key={account.id} href={account.profileUrl} target="_blank" rel="noopener noreferrer">
-          {socialPlatforms[account.platform as ComposerPlatform].label}: @{account.handle} ↗
-        </a>) : <span className="hint">No verified official-office Bluesky or Twitter profile recorded.</span>}
-      </div>
+      {!compact && website && <a href={website.url} target="_blank" rel="noopener noreferrer">Official website ↗{website.status !== 'verified' && ' (unverified link)'}</a>}
+      {!compact && email && <a href={`mailto:${email.address}`}>Direct email: {email.address}{email.status !== 'verified' && ' (unverified)'}</a>}
+      {!compact && notices.map((r, i) => <p className="hint contact-notice" key={i}>{r.description}</p>)}
+      {!compact && form && phone && notices.some(r => r.appliesTo.includes(form.id)) && <p className="hint">The office also publishes the phone number above. A response is not guaranteed.</p>}
+      {!compact && socialProfiles}
       <details className="contact-details">
         <summary>Sources and contact details</summary>
+        {compact && <>
+          {website && <p><a href={website.url} target="_blank" rel="noopener noreferrer">Official website ↗</a></p>}
+          {email && <p><a href={`mailto:${email.address}`}>Direct email: {email.address}{email.status !== 'verified' && ' (unverified)'}</a></p>}
+          {socialProfiles}
+        </>}
         <p className="contact-sources">Officeholder: <Sources verification={official.identityVerification}/></p>
         {socialAccounts.map(account => <p key={account.id} className="contact-sources">Official-office social profile @{account.handle}: <Sources verification={account}/></p>)}
         {official.contacts.map(contact => <div key={contact.id}>

@@ -47,7 +47,7 @@ it('starts empty and retains social text independently through official, templat
   change('Your social draft', 'Keep my @recipient and words');
   change('Your name (optional)', 'Private Name');
   change('City (optional)', 'Private City');
-  change('Your message', 'Letter only');
+  change('Message for Suzanne Bonamici', 'Letter only');
   change('Congressional office', 'wyden');
   change('Starting template', 'detailed');
   change('Social platform', 'x');
@@ -62,7 +62,7 @@ it('imports only rendered House/Senate bodies and offers Undo without confirmati
   render(<App/>);
   change('Your name (optional)', 'Private Name');
   change('City (optional)', 'Private City');
-  change('Your message', 'Letter only');
+  change('Message for Suzanne Bonamici', 'Letter only');
   fireEvent.click(screen.getByRole('button', {name:'Use existing short template'}));
   expect(confirm).not.toHaveBeenCalled();
   expect(editor().value).toBe(renderBody(campaign, officials.find(o => o.id === 'bonamici')!, oregon, 'short'));
@@ -76,14 +76,14 @@ it('imports only rendered House/Senate bodies and offers Undo without confirmati
   fireEvent.click(screen.getByRole('button', {name:'Use existing short template'}));
   expect(editor().value).toBe(renderBody(campaign, officials[0], oregon, 'short'));
   expect(editor().value).not.toContain('Private');
-  const letter = screen.getByLabelText<HTMLTextAreaElement>('Your message').value;
+  const letter = screen.getByLabelText<HTMLTextAreaElement>('Message for Ron Wyden').value;
   fireEvent.click(screen.getByRole('button', {name:'Reset social draft'}));
   expect(editor().value).toBe('');
   fireEvent.click(screen.getByRole('button', {name:'Undo social draft replacement'}));
   expect(editor().value).toBe(renderBody(campaign, officials[0], oregon, 'short'));
   fireEvent.click(screen.getByRole('button', {name:'Reset social draft'}));
   expect(editor().value).toBe('');
-  expect(screen.getByLabelText<HTMLTextAreaElement>('Your message').value).toBe(letter);
+  expect(screen.getByLabelText<HTMLTextAreaElement>('Message for Ron Wyden').value).toBe(letter);
   expect(screen.getByLabelText<HTMLInputElement>('Your name (optional)').value).toBe('Private Name');
   expect(screen.getByLabelText<HTMLInputElement>('City (optional)').value).toBe('Private City');
   expect(confirm).not.toHaveBeenCalled();
@@ -124,8 +124,9 @@ it('keeps social verification sources accessible in the existing details', () =>
   render(<App/>);
   const region = screen.getByRole('region', {name:'Email, Form & Phone'});
   const contact = within(region).getByRole('group', {name:'Contact Suzanne Bonamici'});
+  fireEvent.click(within(contact).getByText('Sources and contact details'));
   const profile = within(contact).getByRole('link', {name:/Bluesky: @repbonamici/});
-  expect(profile.closest('details')).toBeNull();
+  expect(profile.closest('details')?.open).toBe(true);
   const source = within(contact).getByText(/Official-office social profile @repbonamici/);
   expect(source.closest('details')).not.toBeNull();
   expect(source.textContent).toContain('2026-11-09');

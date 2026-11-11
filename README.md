@@ -2,9 +2,27 @@
 
 A privacy-conscious React + TypeScript + Vite civic contact tool, initially populated with Oregon's congressional delegation and a congressional leadership campaign.
 
+## Contact multiple offices
+
+Section 01 starts with the shared office and template-length selectors, followed by optional name/city fields. `MessageComposer.tsx` owns these shared inputs; `MultiOfficeContact.tsx` owns recipient choices, manual completion, and a draft map keyed by stable legislator IDs. `RecipientMessage.tsx` supplies each card's editor, exact-text copy, reset, and Undo. The shared `draftReducer` retains its existing behavior; `personalizedDraft.ts` adds tracked generated ranges to recipient snapshots so text, baseline, origin, and personalization ownership restore together. Social drafts remain unchanged.
+
+A selected House member appears with both senators; choosing a senator shows both senators without assuming a House district. Additional offices can be selected in an expandable area, with no duplicate cards. New recipients initialize with the selected length and their own chamber-specific template. Existing drafts survive length changes, removal, re-addition, and carousel navigation. **Reset all selected messages** explicitly replaces only selected recipients with the chosen length. Each changed card has its own Undo, available until its next edit or replacement; hidden recipients are unaffected. Individual Reset and Undo affect only that card.
+
+**Copy message** copies exactly the recipient editor, including all visible edits and personalization. There is no hidden subject, signature, preview, or second copy action. Subject metadata remains separate from contact-form text.
+
+Optional name/city values generate visible lines only when supplied: a name adds “Sincerely,” and the name; a city adds the city and state. Empty values add nothing. Generated text is tracked by exact ranges, never by searching for matching names or phrases in the body. Shared changes update those ranges in all stored drafts, including temporarily hidden recipients. Manually editing or deleting a generated range transfers ownership of that field to the visitor for that recipient. Reset explicitly generates a fresh template with current shared values; Undo restores the previous text and range ownership exactly, without immediately replaying shared values.
+
+For ambiguous broad edits (for example, pasting over a selection that spans body and signature), all generated fields touched by the contiguous edit become manual. Adding text at the end of a generated line also makes that field manual. This conservative behavior preserves visitor text; Reset restores automatic management. Trimming optional input values treats whitespace-only fields as empty. Copying itself never trims or transforms editor text.
+
+Cards fit three across at wide desktop sizes and scroll horizontally on smaller screens, with snapping, Previous/Next arrows, and Arrow/Home/End keys when the collection itself is focused. Editor keys retain their normal behavior. Touch/trackpad scrolling remains native; no mouse-drag handler is installed. The scrollbar is hidden, but the next card peeks into view on narrower screens. All input/select/textarea fonts are at least 16px, and the responsive viewport allows user zoom. Desktop emulation does not establish that iPhone focus zoom or previously saved browser zoom has been resolved on physical devices.
+
+**Open all N forms** attempts only selected, verified form URLs synchronously from its click handler, using opener/referrer isolation. Browsers may block multiple tabs; null results cannot reliably distinguish blocking from isolation, so feedback reports attempts and unconfirmed openings rather than success. Individual links remain available. Sources, social links, and office-specific restrictions are in each card's details. No draft is put in a URL or sent automatically.
+
+**Completed by me** is a manual reminder, never inferred from opening a form or dialer. All drafts, sender values, selections, and completion flags stay only in React memory until reload or closing. Nothing is saved to storage, URLs, or external services.
+
 ## Social drafts and account maintenance
 
-The page has four full-width sections: **01 / Email, Form & Phone**, **02 / Social**, **03 / Petitions**, and **04 / Directory**, with matching header navigation. `App` owns the shared official selection; each composer retains its independent draft and Undo state. The letter has one editable body and a collapsed **Preview complete message** disclosure containing the formatted subject, salutation/body, and signature. Copy works without opening the preview; a clipboard failure opens it for manual copying. Social is always visible beneath its section heading and decorative hand-drawn icons.
+The page has four full-width sections: **01 / Email, Form & Phone**, **02 / Social**, **03 / Petitions**, and **04 / Directory**, with matching header navigation. `App` owns the shared official selection; each composer retains its independent draft and Undo state. Each recipient card has one editable message with visible optional personalization; Copy copies it exactly. Social is always visible beneath its section heading and decorative hand-drawn icons.
 
 The **Social** section contains a separate, initially empty in-memory draft. It works even without a verified account. Switching officials, platforms, or letter templates retains social text; review recipient references before posting. **Use existing short template** explicitly replaces the social draft with the unchanged rendered House/Senate body. **Reset social draft** clears only this draft. Both replacements offer inline Undo instead of confirmation dialogs. Sender fields and handles are never inserted automatically.
 
@@ -245,3 +263,14 @@ No analytics, accounts, backend, automatic submissions, or local-storage persist
 
 This project is licensed under the Apache License, Version 2.0.
 See [LICENSE](LICENSE) for details.
+
+### Optional browser layout regression check
+
+With Node 22+ and Edge installed, run `npm run build` and `npm run preview -- --host 127.0.0.1 --port 4173` in one terminal. In a second PowerShell terminal, launch a **dedicated** headless browser profile and run the dependency-free check:
+
+```powershell
+Start-Process -FilePath "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" -ArgumentList '--headless=new','--disable-gpu','--remote-debugging-port=9224',"--user-data-dir=$((Join-Path $PWD '.tools/layout-browser'))",'about:blank' -WindowStyle Hidden
+node scripts/check-contact-layout.mjs
+```
+
+The script checks desktop/tablet/320px layouts in both themes, document overflow against `documentElement.clientWidth`, editor focus scale, 16px control fonts, keyboard scrolling, expanded details, and all-eight-office layout. Screenshots go to ignored `.tools/`; the dedicated browser closes afterward. It does not submit forms or verify physical iOS behavior. In particular, it does not reset any zoom setting saved by a visitor's browser.

@@ -1,12 +1,8 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
+import {cleanup, fireEvent, render, screen, within} from '@testing-library/react';
 import App from './App';
-import baseline from './lib/__fixtures__/original-messages.json';
 
 afterEach(() => {cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals();});
-const editor = () => screen.getByLabelText<HTMLTextAreaElement>('Your message');
-const name = () => screen.getByLabelText<HTMLInputElement>('Your name (optional)');
-const city = () => screen.getByLabelText<HTMLInputElement>('City (optional)');
 const change = (element: HTMLElement, value: string) => fireEvent.change(element, {target: {value}});
 
 describe('composer', () => {
@@ -38,27 +34,6 @@ describe('composer', () => {
     expect(screen.getByLabelText<HTMLTextAreaElement>('Your social draft').value).toBe('Retain my draft');
   });
 
-  it('has one editable letter field and a collapsed read-only complete preview matching copied text', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', {clipboard:{writeText}});
-    render(<App/>);
-    const section = screen.getByRole('region', {name:'Email, Form & Phone'});
-    expect(section.querySelectorAll('textarea')).toHaveLength(1);
-    expect(section.querySelectorAll('[contenteditable="true"]')).toHaveLength(0);
-    const summary = screen.getByText('Preview complete message');
-    const preview = summary.closest('details')!;
-    expect(preview.open).toBe(false);
-    change(name(), 'Alex'); change(city(), 'Salem');
-    fireEvent.click(screen.getByRole('button', {name:'Copy complete message'}));
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(`Subject: Question about congressional leadership — Suzanne Bonamici\n\n${baseline.house.standard}\n\nSincerely,\nAlex\nSalem, Oregon`));
-    expect(preview.open).toBe(false);
-    fireEvent.click(summary);
-    expect(preview.open).toBe(true);
-    expect(preview.querySelector('pre')?.textContent).toBe(writeText.mock.calls[0][0]);
-    expect(preview.textContent).toContain('Dear Representative Bonamici,');
-    fireEvent.click(summary);
-    expect(preview.open).toBe(false);
-  });
   it('keeps selected identity visible and shares the same phone actions with the directory', () => {
     render(<App/>);
     const composer = screen.getByRole('region', {name:'Email, Form & Phone'});
@@ -70,89 +45,17 @@ describe('composer', () => {
       expect(within(contact).getByRole('button', {name:/Copy Suzanne/}).textContent).toBe('Copy');
     }
     change(screen.getByLabelText('Congressional office'), 'wyden');
-    expect(within(composer).getByRole('heading', {name:'Ron Wyden'})).toBeTruthy();
-    expect(within(composer).getByText('U.S. Senator')).toBeTruthy();
+    const selectedContact = within(composer).getByRole('group', {name:'Contact Ron Wyden'});
+    expect(within(selectedContact).getByRole('heading', {name:'Ron Wyden'})).toBeTruthy();
+    expect(within(selectedContact).getByText('U.S. Senator')).toBeTruthy();
     expect(within(composer).queryByRole('heading', {name:'Suzanne Bonamici'})).toBeNull();
   });
-  it('starts with the existing House standard draft', () => {
-    render(<App/>);
-    expect(editor().value).toBe(baseline.house.standard);
-  });
-
-  it('preserves sender fields when switching officials/templates and resetting only the selected body', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', {clipboard: {writeText}});
-    render(<App/>);
-    change(name(), 'Alex');
-    change(city(), 'Salem');
-    change(editor(), 'Personal edits');
-    change(screen.getByLabelText('Congressional office'), 'wyden');
-    expect(editor().value).toBe('Personal edits');
-    change(editor(), 'More edits');
-    change(screen.getByLabelText('Starting template'), 'detailed');
-    expect(editor().value).toBe('More edits');
-    change(editor(), 'Final edits');
-    fireEvent.click(screen.getByRole('button', {name: 'Copy complete message'}));
-    await screen.findByRole('button', {name: 'Copied!'});
-    fireEvent.click(screen.getByRole('button', {name: 'Reset to selected template'}));
-    expect(editor().value).toBe(baseline.senate.detailed);
-    expect(name().value).toBe('Alex');
-    expect(city().value).toBe('Salem');
-    expect(screen.getByRole('button', {name: 'Copy complete message'})).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', {name: 'Copy complete message'}));
-    await waitFor(() => expect(writeText).toHaveBeenLastCalledWith(
-      `Subject: Question about congressional leadership — Ron Wyden\n\n${baseline.senate.detailed}\n\nSincerely,\nAlex\nSalem, Oregon`,
-    ));
-    change(screen.getByLabelText('Congressional office'), 'bonamici');
-    expect(editor().value).toBe(baseline.senate.detailed);
-    expect(screen.getByRole('button', {name: 'Copy complete message'})).toBeTruthy();
-  });
-
-  it('copies the edited body with subject and optional signature without resetting edits', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', {clipboard: {writeText}});
-    render(<App/>);
-    change(editor(), 'My own message {{leader}}');
-    change(name(), ' Alex ');
-    expect(editor().value).toBe('My own message {{leader}}');
-    fireEvent.click(screen.getByRole('button', {name: 'Copy complete message'}));
-    await screen.findByRole('button', {name: 'Copied!'});
-    expect(writeText).toHaveBeenCalledWith('Subject: Question about congressional leadership — Suzanne Bonamici\n\nMy own message {{leader}}\n\nSincerely,\nAlex\n[City], Oregon');
-  });
-
-  it('retains the manual-copy fallback when clipboard access fails', async () => {
-    vi.stubGlobal('navigator', {clipboard: {writeText: vi.fn().mockRejectedValue(new Error('denied'))}});
-    const alert = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    render(<App/>);
-    fireEvent.click(screen.getByRole('button', {name: 'Copy complete message'}));
-    await waitFor(() => expect(alert).toHaveBeenCalledWith('Clipboard access unavailable. Select and copy the preview text instead.'));
-    expect(screen.getByText('Preview complete message').closest('details')?.open).toBe(true);
-    expect(editor().value).toBe(baseline.house.standard);
-  });
-
   it('preserves petition filtering and external contact links', () => {
     render(<App/>);
-    expect(screen.getAllByRole('link', {name: 'Official contact form ↗'})[0].getAttribute('href')).toBe('https://bonamici.house.gov/contact/email');
+    expect(screen.getByRole('link', {name: 'Open official form for Suzanne Bonamici'}).getAttribute('href')).toBe('https://bonamici.house.gov/contact/email');
     change(screen.getByLabelText('Filter'), 'house');
     expect(screen.queryByRole('heading', {name: 'Remove Chuck Schumer for a younger leader'})).toBeNull();
     expect(screen.getByRole('heading', {name: 'Remove Chuck Schumer and Hakeem Jeffries from leadership roles'})).toBeTruthy();
   });
 
-  it('copying a phone number does not change the draft, sender fields or message copy state', async () => {
-    const writeText = vi.fn().mockResolvedValue(undefined);
-    vi.stubGlobal('navigator', {clipboard: {writeText}});
-    render(<App/>);
-    change(editor(), 'My draft');
-    change(name(), 'Alex');
-    change(city(), 'Salem');
-    fireEvent.click(screen.getAllByRole('button', {name: /Copy Suzanne Bonamici.*phone number/})[0]);
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith('(202) 225-0855'));
-    expect(editor().value).toBe('My draft');
-    expect(name().value).toBe('Alex');
-    expect(city().value).toBe('Salem');
-    expect(screen.getByRole('button', {name: 'Copy complete message'})).toBeTruthy();
-    change(screen.getByLabelText('Congressional office'), 'wyden');
-    expect(screen.queryByText('Number copied.')).toBeNull();
-    expect(editor().value).toBe('My draft');
-  });
 });
