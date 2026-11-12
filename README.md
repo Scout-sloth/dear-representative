@@ -22,7 +22,7 @@ Cards fit three across at wide desktop sizes and scroll horizontally on smaller 
 
 ## Social drafts and account maintenance
 
-The page has four full-width sections: **01 / Email, Form & Phone**, **02 / Social**, **03 / Petitions**, and **04 / Directory**, with matching header navigation. `App` owns the shared official selection; each composer retains its independent draft and Undo state. Each recipient card has one editable message with visible optional personalization; Copy copies it exactly. Social is always visible beneath its section heading and decorative hand-drawn icons.
+The page has five full-width sections: **01 / Email, Form & Phone**, **02 / Social**, **03 / Petitions**, **04 / Directory**, and **05 / Sources & Context**, with matching header navigation. `App` owns the shared official selection; each composer retains its independent draft and Undo state. Each recipient card has one editable message with visible optional personalization; Copy copies it exactly. Social is always visible beneath its section heading and decorative hand-drawn icons.
 
 The **Social** section contains a separate, initially empty in-memory draft. It works even without a verified account. Switching officials, platforms, or letter templates retains social text; review recipient references before posting. **Use existing short template** explicitly replaces the social draft with the unchanged rendered House/Senate body. **Reset social draft** clears only this draft. Both replacements offer inline Undo instead of confirmation dialogs. Sender fields and handles are never inserted automatically.
 
@@ -120,7 +120,7 @@ Keep `dist/`, dependencies, certificates, CA material, and secrets out of commit
 
 ## Structure
 
-- `src/campaigns/congressional-leadership/` — campaign details, subject, signature, curated petition links, and six independent template files under `templates/{house,senate}/{short,standard,detailed}.ts`.
+- `src/campaigns/congressional-leadership/` — campaign details, subject, signature, curated petition links, and four independent template files under `templates/{house,senate}/{short,detailed}.ts`.
 - `src/campaigns/index.ts` — campaign registry; currently contains one campaign.
 - `src/data/states/oregon.ts` — separate Oregon state metadata and legislator records, including explicit salutations and typed contact methods.
 - `src/data/states/index.ts` — state and legislator registries; only Oregon is populated.
@@ -136,7 +136,7 @@ Edit the appropriate chamber/length template file to change a starting message. 
 
 Templates use `{{salutation}}`, `{{officialName}}`, `{{stateName}}`, `{{senderName}}`, `{{senderCity}}`, and keys from campaign details (currently `{{leader}}`, `{{office}}`, `{{congress}}`). Unknown placeholders throw an error so content mistakes are caught by tests. Values are substituted once as literal text. The body renderer uses sender fallbacks; the signature is composed separately using the optional sender inputs so those inputs never overwrite body edits.
 
-The letter initializes with the selected standard template. Changing the official or template retains the body, including intentionally empty drafts. **Reset to selected template** explicitly replaces it with the currently selected template. Name and city remain independent. The preview subject follows the selected official, so review recipient references in retained text. Copying includes the subject, edited body, and signature; blank sender fields retain the original `[Your name]` and `[City]` placeholders.
+Recipient messages initialize with the approved **Short** template for their chamber. **Message length** offers only Short and Detailed. Changing length retains existing drafts; individual Reset or Reset all selected messages explicitly applies the selected length, with independent Undo. Optional personalization remains visible and ownership-aware. Copy message copies exactly the editor, without a subject or hidden signature. Each template keeps its approved subject as metadata; `renderSubject` resolves it by chamber and length.
 
 Both composers independently use `src/lib/draft.ts`, a shared pure reducer holding text, the applied template baseline/origin, and one previous snapshot. Replacement offers an accessible inline Undo with no timer. Undo restores exact prior text, baseline and origin, returns focus to that editor, and does not change current selections or sender fields. Selection changes, copying, and collapsing the social composer keep Undo available. Editing ends that composer's Undo opportunity; a subsequent replacement saves only the immediately preceding draft. An identical reset is a no-op that preserves existing Undo. Drafts and snapshots remain in browser memory only and disappear on reload. Social initialization remains empty; no social-template content is added by this interaction change.
 
@@ -274,3 +274,11 @@ node scripts/check-contact-layout.mjs
 ```
 
 The script checks desktop/tablet/320px layouts in both themes, document overflow against `documentElement.clientWidth`, editor focus scale, 16px control fonts, keyboard scrolling, expanded details, and all-eight-office layout. Screenshots go to ignored `.tools/`; the dedicated browser closes afterward. It does not submit forms or verify physical iOS behavior. In particular, it does not reset any zoom setting saved by a visitor's browser.
+
+## Campaign research: Sources & Context
+
+Section 05 uses `src/campaigns/congressional-leadership/research.ts`, typed by `src/types/research.ts`. `SourcesContext.tsx` renders any campaign's topics and methodology without hard-coded politicians or citations. Add evidence entries with stable IDs, subject names, a bounded claim, source URLs/publishers, primary/secondary labels, event or publication dates when confirmed, verification status/date, and limitations. Update verified dates only after checking the supporting content. Pending references may have a `lastChecked` date but must not have a `lastVerified` date. Missing publication dates remain explicitly unconfirmed.
+
+Initial review (2026-11-11) confirms Schumer's Yea votes on Senate roll calls 648 (2025 concurrence in the House amendment to S.1071) and 343 (2023 conference report on H.R.2670). GPO's enrolled S.1071 text confirms the FY2026 NDAA identity despite the older title on the roll-call page; Congress.gov actions confirm enactment. The supplied 2015 GovTrack page was inaccessible and remains a pending lead, with no attributed voting position. The other six topics are research-in-progress scopes, not conclusions about either leader. Expand the record with primary evidence before publishing additional claims; distinguish votes, financial transaction types, organizational classifications, dated polling, and incomplete searches as described in the methodology.
+
+Sources are static links opened by the visitor: no runtime fetching, tracking, scraping, or third-party embeds. Campaign templates are independent and were not changed for this section.

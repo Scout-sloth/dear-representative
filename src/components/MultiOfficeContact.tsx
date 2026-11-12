@@ -85,7 +85,6 @@ export default function MultiOfficeContact({officials, state, officialId, campai
   return <div className="multi-office" role="group" aria-labelledby="multi-office-title">
     <h3 id="multi-office-title">Contact your representatives</h3>
     <p className="hint">Congressional contact forms generally request your address and ZIP code. Each office has its own requirements, and you'll submit your message separately.</p>
-    <p className="hint">Each office has its own editable House or Senate message. Selection and length changes preserve drafts. Reset explicitly to apply the selected length; each changed card offers Undo. Copy message copies exactly the editor text. Optional name and city appear in the editor; editing those generated lines makes them yours to manage until Reset.</p>
     <details className="office-choices">
       <summary>Choose additional offices or deselect recipients</summary>
       <p className="hint">The House card follows Congressional office above; choosing a senator does not assume a House district. Other House districts represent different constituencies. Selecting an office does not establish residency or eligibility.</p>

@@ -6,7 +6,7 @@ import type {Campaign, Legislator, State, TemplateId} from '../types';
 type Props = {campaign: Campaign; officials: Legislator[]; state: State; officialId: string; onOfficialChange: (id: string) => void};
 
 export default function MessageComposer({campaign, officials, state, officialId, onOfficialChange}: Props) {
-  const [kind, setKind] = useState<TemplateId>('standard');
+  const [kind, setKind] = useState<TemplateId>('short');
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
   return <section id="contact" className="panel" aria-labelledby="compose-title">
@@ -20,7 +20,7 @@ export default function MessageComposer({campaign, officials, state, officialId,
           {officials.map(o => <option key={o.id} value={o.id}>{o.name} — {o.chamber === 'senate' ? 'Senate' : `House ${o.state}-${o.district}`}</option>)}
         </select>
       </label>
-      <label>Starting template
+      <label>Message length
         <select value={kind} onChange={e => setKind(e.target.value as TemplateId)}>
           {(Object.keys(templateLabels) as TemplateId[]).map(k => <option value={k} key={k}>{templateLabels[k]}</option>)}
         </select>

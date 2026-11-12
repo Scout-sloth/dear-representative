@@ -6,7 +6,7 @@ import {congressionalLeadership as campaign} from '../campaigns/congressional-le
 import {officials, oregon} from '../data/states/oregon';
 
 afterEach(() => {cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); Reflect.deleteProperty(document, 'execCommand');});
-const setup = () => render(<MultiOfficeContact officialId="bonamici" officials={officials} state={oregon} campaign={campaign} kind="standard" sender={{}}/>);
+const setup = () => render(<MultiOfficeContact officialId="bonamici" officials={officials} state={oregon} campaign={campaign} kind="short" sender={{}}/>);
 const list = () => screen.getByRole('list', {name:'Selected offices'});
 const completed = (name: string) => screen.getByRole<HTMLInputElement>('checkbox', {name:`Completed by me: ${name}`});
 const options = () => fireEvent.click(screen.getByText('Choose additional offices or deselect recipients'));
@@ -81,7 +81,7 @@ it('attempts only verified selected forms synchronously and reports partial or b
 
 it('excludes unverified forms from bulk opening', () => {
  const open=vi.spyOn(window,'open').mockReturnValue(null);
- render(<MultiOfficeContact officialId="wyden" officials={[{...officials[0],contacts:officials[0].contacts.map(c=>({...c,status:'unknown',lastVerified:null}))}]} state={oregon} campaign={campaign} kind="standard" sender={{}}/>);
+ render(<MultiOfficeContact officialId="wyden" officials={[{...officials[0],contacts:officials[0].contacts.map(c=>({...c,status:'unknown',lastVerified:null}))}]} state={oregon} campaign={campaign} kind="short" sender={{}}/>);
  expect(screen.getByRole<HTMLButtonElement>('button',{name:'Open all 0 forms'}).disabled).toBe(true);
  expect(within(list()).queryByRole('link',{name:/Open official form/})).toBeNull();expect(open).not.toHaveBeenCalled();
 });

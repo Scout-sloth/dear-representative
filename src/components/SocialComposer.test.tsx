@@ -49,7 +49,7 @@ it('starts empty and retains social text independently through official, templat
   change('City (optional)', 'Private City');
   change('Message for Suzanne Bonamici', 'Letter only');
   change('Congressional office', 'wyden');
-  change('Starting template', 'detailed');
+  change('Message length', 'detailed');
   change('Social platform', 'x');
   expect(editor().value).toBe('Keep my @recipient and words');
   expect(screen.getByText(/Selected office: Ron Wyden/).textContent).toContain('Review recipient references');

@@ -19,14 +19,14 @@ it('renders only recipient editors with correctly addressed chamber templates an
  expect(section.querySelectorAll('textarea')).toHaveLength(3);
  expect(screen.queryByLabelText('Your message')).toBeNull();
  expect(screen.getAllByLabelText('Your name (optional)')).toHaveLength(1);
- for(const name of [bon,ron,jeff])expect(editor(name).value).toBe(renderBody(campaign,officials.find(o=>o.name===name)!,oregon,'standard'));
+ for(const name of [bon,ron,jeff])expect(editor(name).value).toBe(renderBody(campaign,officials.find(o=>o.name===name)!,oregon,'short'));
  expect(section.querySelectorAll('input:not([type=checkbox])')).toHaveLength(2);
  expect(screen.getByLabelText('Your name (optional)').compareDocumentPosition(editor(bon)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
 it('preserves independent edits and Undo through selection, length changes, removal and return',()=>{
  render(<App/>);change(`Message for ${bon}`,'  Exact letter\n👨‍👩‍👧‍👦  ');change(`Message for ${ron}`,'Senate edits');
- reset(bon);change('Congressional office','bentz');change('Starting template','short');
+ reset(bon);change('Congressional office','bentz');change('Message length','short');
  expect(editor(ron).value).toBe('Senate edits');change('Congressional office','bonamici');
  undo(bon);expect(editor(bon).value).toBe('  Exact letter\n👨‍👩‍👧‍👦  ');expect(document.activeElement).toBe(editor(bon));
  expect(editor(ron).value).toBe('Senate edits');
@@ -36,7 +36,7 @@ it('preserves independent edits and Undo through selection, length changes, remo
 
 it('resets all selected drafts explicitly with independent Undo, leaving hidden drafts and social alone',()=>{
  render(<App/>);change(`Message for ${bon}`,'Hidden House draft');change('Congressional office','bentz');
- change(`Message for ${ron}`,'  Previous Senate\n ');change('Your social draft','Independent social');change('Starting template','detailed');
+ change(`Message for ${ron}`,'  Previous Senate\n ');change('Your social draft','Independent social');change('Message length','detailed');
  const previous=editor(jeff).value;
  fireEvent.click(screen.getByRole('button',{name:'Reset all selected messages'}));
  for(const name of ['Cliff Bentz',ron,jeff])expect(editor(name).value).toBe(renderBody(campaign,officials.find(o=>o.name===name)!,oregon,'detailed'));
@@ -47,12 +47,12 @@ it('resets all selected drafts explicitly with independent Undo, leaving hidden 
 });
 
 it('initializes newly added offices with the current length and retains them after deselection',()=>{
- render(<App/>);change('Starting template','short');
+ render(<App/>);change('Message length','short');
  fireEvent.click(screen.getByText('Choose additional offices or deselect recipients'));
  fireEvent.click(screen.getByRole('checkbox',{name:'Maxine Dexter — House OR-3'}));
  expect(editor('Maxine Dexter').value).toBe(renderBody(campaign,officials.find(o=>o.id==='dexter')!,oregon,'short'));
  change('Message for Maxine Dexter','Keep this');
- fireEvent.click(screen.getByRole('checkbox',{name:'Maxine Dexter — House OR-3'}));change('Starting template','detailed');
+ fireEvent.click(screen.getByRole('checkbox',{name:'Maxine Dexter — House OR-3'}));change('Message length','detailed');
  fireEvent.click(screen.getByRole('checkbox',{name:'Maxine Dexter — House OR-3'}));expect(editor('Maxine Dexter').value).toBe('Keep this');
 });
 
@@ -101,7 +101,7 @@ it('updates shared fields across hidden drafts while respecting recipient-specif
  change(`Message for ${bon}`,bonOriginal.replace('Sincerely,\nAlex','With respect,\nAlex'));
  change(`Message for ${ron}`,editor(ron).value.replace('Salem, Oregon','My manually entered location'));
  change('Congressional office','bentz');
- change('Your name (optional)','Sam');change('City (optional)','Portland');change('Starting template','short');
+ change('Your name (optional)','Sam');change('City (optional)','Portland');change('Message length','short');
  change('Congressional office','bonamici');
  expect(editor(bon).value).toContain('With respect,\nAlex\nPortland, Oregon');
  expect(editor(ron).value).toContain('Sincerely,\nSam\nMy manually entered location');
@@ -116,6 +116,28 @@ it('preserves Undo across shared personalization changes and does not recreate r
  const original=editor(bon).value;change(`Message for ${bon}`,original.slice(0,original.indexOf('\n\nSincerely,')));
  const removed=editor(bon).value;reset(bon);change('Your name (optional)','Sam');undo(bon);
  expect(editor(bon).value).toBe(removed);
- change('Starting template','short');change('City (optional)','Salem');
+ change('Message length','short');change('City (optional)','Salem');
  expect(editor(bon).value).not.toContain('Sincerely,');expect(editor(bon).value).toBe(removed+'\n\nSalem, Oregon');
+});
+
+it('defaults to Short, offers only two lengths, and requires explicit replacement after switching',()=>{
+ render(<App/>);
+ const length=screen.getByRole<HTMLSelectElement>('combobox',{name:'Message length'});
+ expect(length.value).toBe('short');
+ expect(within(length).getAllByRole('option').map(o=>o.textContent)).toEqual(['Short','Detailed']);
+ expect(screen.queryByRole('option',{name:'Standard'})).toBeNull();
+ const original=editor(bon).value;
+ change('Message length','detailed');expect(editor(bon).value).toBe(original);
+ reset(bon);expect(editor(bon).value).toBe(renderBody(campaign,officials.find(o=>o.name===bon)!,oregon,'detailed'));
+ expect(editor(ron).value).toBe(renderBody(campaign,officials.find(o=>o.name===ron)!,oregon,'short'));
+ change('Message length','short');undo(bon);expect(editor(bon).value).toBe(original);
+ expect(document.querySelector('#contact')?.textContent).not.toContain('Each office has its own editable House or Senate message.');
+ for(const name of [bon,ron,jeff]){
+  expect(editor(name).value.match(/Dear /g)).toHaveLength(1);
+  expect(editor(name).value).not.toMatch(/\[Your Name\]|\[Your name\]|\[City\]|Sincerely,|Subject:/);
+ }
+ change('Your name (optional)','Alex');change('City (optional)','Salem');
+ reset(bon);reset(bon);
+ expect(editor(bon).value.match(/Sincerely,/g)).toHaveLength(1);
+ expect(editor(bon).value.match(/Salem, Oregon/g)).toHaveLength(1);
 });

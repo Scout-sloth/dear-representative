@@ -1,6 +1,6 @@
 import type { Campaign, Legislator, Sender, State, TemplateId } from '../types';
 export const templateLabels: Record<TemplateId, string> = {
-    short: 'Short', standard: 'Standard', detailed: 'Detailed',
+    short: 'Short', detailed: 'Detailed',
 };
 export interface MessageContext {
     officialName: string;
@@ -33,7 +33,10 @@ function contextFor(campaign: Campaign, official: Legislator, state: State, send
 export function renderBody(campaign: Campaign, official: Legislator, state: State, kind: TemplateId): string {
     return renderTemplate(campaign.templates[official.chamber][kind].body, contextFor(campaign, official, state));
 }
-export function renderCompleteMessage(campaign: Campaign, official: Legislator, state: State, body: string, sender: Sender = {}): string {
+export function renderSubject(campaign: Campaign, official: Legislator, state: State, kind: TemplateId): string {
+    return renderTemplate(campaign.templates[official.chamber][kind].subject ?? campaign.subject, contextFor(campaign, official, state));
+}
+export function renderCompleteMessage(campaign: Campaign, official: Legislator, state: State, body: string, sender: Sender = {}, kind: TemplateId = 'short'): string {
     const context = contextFor(campaign, official, state, sender);
-    return `Subject: ${renderTemplate(campaign.subject, context)}\n\n${body}${renderTemplate(campaign.signature, context)}`;
+    return `Subject: ${renderSubject(campaign, official, state, kind)}\n\n${body}${renderTemplate(campaign.signature, context)}`;
 }

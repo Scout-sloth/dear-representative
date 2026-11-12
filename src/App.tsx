@@ -1,3 +1,4 @@
+import SourcesContext from './components/SourcesContext';
 import blueskyIcon from './assets/social/dear-representative-social-icons/bluesky.svg?raw';
 import twitterIcon from './assets/social/dear-representative-social-icons/twitter.svg?raw';
 import MessageComposer from './components/MessageComposer';
@@ -27,6 +28,7 @@ export default function App() {
             <a href="#social">02 / Social</a>
             <a href="#petitions">03 / Petitions</a>
             <a href="#directory">04 / Directory</a>
+            {campaign.research && <a href="#sources">05 / Sources &amp; Context</a>}
           </nav>
         </div>
       </header>
@@ -45,6 +47,7 @@ export default function App() {
         </section>
         <PetitionDirectory petitions={campaign.petitions}/>
         <DelegationDirectory officials={officials} state={state}/>
+        {campaign.research && <SourcesContext research={campaign.research}/>}
       </main>
       <footer className="wrap">
         <section className="privacy-disclosure" aria-labelledby="privacy-title">

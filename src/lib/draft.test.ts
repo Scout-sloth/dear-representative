@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {createDraft, draftReducer, type DraftOrigin} from './draft';
 
-const origin: DraftOrigin = {campaignId:'campaign', officialId:'house-member', chamber:'house', stateCode:'OR', template:'standard'};
+const origin: DraftOrigin = {campaignId:'campaign', officialId:'house-member', chamber:'house', stateCode:'OR', template:'short'};
 const other: DraftOrigin = {...origin, officialId:'senator', chamber:'senate', template:'short', platform:'x'};
 
 describe('draft state', () => {

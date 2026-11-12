@@ -214,3 +214,13 @@ input, select, textarea {min-width:0; font-size:16px;}
 @media(max-width:520px) {#contact {padding-left:16px; padding-right:16px;} .contact-card {flex-basis:90%;}}
 /* Contain absolutely positioned live feedback within its scrolling card. */
 .contact-card {position:relative;}
+.research-topic {border-top:1px solid var(--border); padding:12px 0; font-size:.9rem; line-height:1.6;}
+.research-topic > summary {cursor:pointer; color:var(--link); font-weight:700; padding:6px 0;}
+.research-status {font-weight:400; color:var(--muted);}
+.research-entry {border-top:1px solid var(--border); margin-top:16px; padding-top:12px;}
+.research-entry h3 {font-size:1rem; margin:0 0 8px;}
+.research-sources {padding-left:20px;}
+.research-sources li {margin-bottom:12px;}
+.research-sources p {margin:4px 0;}
+.research-topic dt {font-weight:700; margin-top:12px;}
+.research-topic dd {margin:4px 0 12px;}

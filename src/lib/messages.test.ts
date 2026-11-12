@@ -2,17 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { congressionalLeadership as campaign } from '../campaigns/congressional-leadership';
 import { legislators, states } from '../data/states';
 import { campaigns } from '../campaigns';
-import { renderBody, renderCompleteMessage, renderTemplate } from './messages';
-import baseline from './__fixtures__/original-messages.json';
+import { renderBody, renderCompleteMessage, renderSubject, renderTemplate } from './messages';
+import baseline from './__fixtures__/approved-messages.json';
 import type { Sender } from '../types';
 const state = states[0];
 const house = legislators.find(o => o.id === 'bonamici')!;
 const senate = legislators.find(o => o.id === 'wyden')!;
 describe('message rendering', () => {
     for (const official of [house, senate]) {
-        for (const kind of ['short', 'standard', 'detailed'] as const) {
-            it(`preserves the original ${official.chamber} ${kind} wording exactly`, () => {
-                expect(renderBody(campaign, official, state, kind)).toBe(baseline[official.chamber][kind]);
+        for (const kind of ['short', 'detailed'] as const) {
+            it(`preserves the approved ${official.chamber} ${kind} wording exactly`, () => {
+                expect(renderBody(campaign, official, state, kind)).toBe(baseline[official.chamber][kind].body);
+                expect(renderSubject(campaign, official, state, kind)).toBe(baseline[official.chamber][kind].subject);
             });
         }
     }
@@ -27,14 +28,18 @@ describe('message rendering', () => {
         [{ city: ' Salem ' }, '[Your name]', 'Salem'],
         [{ name: ' Alex ', city: ' Salem ' }, 'Alex', 'Salem'],
     ])('handles optional sender fields: %j', (sender, name, city) => {
-        expect(renderCompleteMessage(campaign, house, state, 'Edited body', sender)).toBe(`Subject: Question about congressional leadership — Suzanne Bonamici\n\nEdited body\n\nSincerely,\n${name}\n${city}, Oregon`);
+        expect(renderCompleteMessage(campaign, house, state, 'Edited body', sender)).toBe(`Subject: Oppose Hakeem Jeffries as House Democratic Leader\n\nEdited body\n\nSincerely,\n${name}\n${city}, Oregon`);
     });
-    it('substitutes explicit salutations, state names and campaign details', () => {
-        const otherCampaign = { ...campaign, details: { ...campaign.details, house: { ...campaign.details.house, leader: 'Example leader' } } };
-        const body = renderBody(otherCampaign, { ...house, salutation: 'Representative Example-Smith' }, { code: 'XX', name: 'Example State' }, 'short');
-        expect(body).toContain('Dear Representative Example-Smith,');
-        expect(body).toContain('I am an Example State resident');
-        expect(body).toContain('support Example leader');
+    it('substitutes explicit salutations without changing approved body wording', () => {
+        const body = renderBody(campaign, {...house, salutation:'Representative Example-Smith'}, state, 'short');
+        expect(body).toBe(baseline.house.short.body.replace('Representative Bonamici','Representative Example-Smith'));
+        expect(body.match(/Dear /g)).toHaveLength(1);
+        expect(body).not.toMatch(/Sincerely,|\[Your Name\]|\[Last Name\]|Subject:/);
+    });
+    it('has exactly four active templates and two length labels', () => {
+        expect(Object.keys(campaign.templates.house)).toEqual(['short','detailed']);
+        expect(Object.keys(campaign.templates.senate)).toEqual(['short','detailed']);
+        expect(Object.values(campaign.templates).flatMap(Object.values)).toHaveLength(4);
     });
     it('does not interpret user text as placeholders or markup', () => {
         const message = renderCompleteMessage(campaign, house, state, '{{leader}} <b>my words</b>', { name: '{{officialName}} $&' });
@@ -63,7 +68,7 @@ describe('data consistency', () => {
         expect(new Set(campaigns.map(c => c.id)).size).toBe(campaigns.length);
         for (const entry of campaigns) {
             for (const official of [house, senate])
-                for (const kind of ['short', 'standard', 'detailed'] as const) {
+                for (const kind of ['short', 'detailed'] as const) {
                     expect(entry.templates[official.chamber][kind]).toMatchObject({ id: kind, chamber: official.chamber });
                     expect(renderBody(entry, official, state, kind)).not.toMatch(/\{\{\w+\}\}/);
                 }

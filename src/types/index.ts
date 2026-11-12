@@ -1,3 +1,4 @@
+import type {CampaignResearch} from './research';
 export type Chamber = 'senate' | 'house';
 export interface State {
     code: string;
@@ -82,8 +83,9 @@ export type Petition = {
     verification?: Verification;
     description: string;
 };
-export type TemplateId = 'short' | 'standard' | 'detailed';
+export type TemplateId = 'short' | 'detailed';
 export interface MessageTemplate {
+    subject?: string;
     id: TemplateId;
     chamber: Chamber;
     body: string;
@@ -100,6 +102,7 @@ export interface Campaign {
         city: string;
     };
     petitions: Petition[];
+    research?: CampaignResearch;
 }
 export interface Sender {
     name?: string;

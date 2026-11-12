@@ -16,17 +16,17 @@ describe('composer', () => {
     expect(disclosure.textContent).toContain('External congressional and petition websites');
     expect(disclosure.textContent).toContain('technical request information and access logs');
     expect(within(disclosure).getByRole('link', {name:'GitHub’s privacy statement'}).getAttribute('href')).toBe('https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement');
-    for (const name of ['Email, Form & Phone','Social','Petitions','Directory']) {
+    for (const name of ['Email, Form & Phone','Social','Petitions','Directory','Sources & Context']) {
       expect(screen.getByRole('region', {name}).parentElement?.tagName).toBe('MAIN');
     }
   });
-  it('orders four full-width sections with matching navigation targets and a permanent Social section', () => {
+  it('orders five full-width sections with matching navigation targets and a permanent Social section', () => {
     render(<App/>);
     const sections = Array.from(document.querySelectorAll('main > section'));
-    expect(sections.map(s => s.id)).toEqual(['contact','social','petitions','directory']);
-    expect(sections.map(s => s.querySelector('h2')?.textContent?.trim())).toEqual(['Email, Form & Phone','Social','Petitions','Directory']);
+    expect(sections.map(s => s.id)).toEqual(['contact','social','petitions','directory','sources']);
+    expect(sections.map(s => s.querySelector('h2')?.textContent?.trim())).toEqual(['Email, Form & Phone','Social','Petitions','Directory','Sources & Context']);
     const navigation = screen.getByRole('navigation', {name:'Page sections'});
-    expect(within(navigation).getAllByRole('link').map(a => a.getAttribute('href'))).toEqual(['#contact','#social','#petitions','#directory']);
+    expect(within(navigation).getAllByRole('link').map(a => a.getAttribute('href'))).toEqual(['#contact','#social','#petitions','#directory','#sources']);
     const social = screen.getByRole('region', {name:'Social'});
     expect(social.querySelector('details, summary')).toBeNull();
     change(screen.getByLabelText('Your social draft'), 'Retain my draft');
