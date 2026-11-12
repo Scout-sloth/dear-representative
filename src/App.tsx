@@ -13,7 +13,7 @@ export default function App() {
   const state = states[0];
   const campaign = campaigns[0];
   const officials = legislators.filter(official => official.state === state.code);
-  const [officialId, setOfficialId] = useState('bonamici');
+  const [officialId, setOfficialId] = useState('B001278'); // Suzanne Bonamici (bioguide)
   const official = officials.find(o => o.id === officialId)!;
 
   return (

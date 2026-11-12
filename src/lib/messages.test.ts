@@ -6,8 +6,8 @@ import { renderBody, renderCompleteMessage, renderSubject, renderTemplate } from
 import baseline from './__fixtures__/approved-messages.json';
 import type { Sender } from '../types';
 const state = states[0];
-const house = legislators.find(o => o.id === 'bonamici')!;
-const senate = legislators.find(o => o.id === 'wyden')!;
+const house = legislators.find(o => o.id === 'B001278')!; // Bonamici
+const senate = legislators.find(o => o.id === 'W000779')!; // Wyden
 describe('message rendering', () => {
     for (const official of [house, senate]) {
         for (const kind of ['short', 'detailed'] as const) {
