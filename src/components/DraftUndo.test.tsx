@@ -21,7 +21,7 @@ it('renders only recipient editors with correctly addressed chamber templates an
  expect(screen.queryByLabelText('Your message')).toBeNull();
  expect(screen.getAllByLabelText('Your name (optional)')).toHaveLength(1);
  for(const name of [bon,ron,jeff])expect(editor(name).value).toBe(renderBody(campaign,officials.find(o=>o.name===name)!,oregon,'short'));
- expect(section.querySelectorAll('input:not([type=checkbox])')).toHaveLength(2);
+ expect(section.querySelectorAll('input:not([type=checkbox])')).toHaveLength(3); // office search + name + city
  expect(screen.getByLabelText('Your name (optional)').compareDocumentPosition(editor(bon)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 

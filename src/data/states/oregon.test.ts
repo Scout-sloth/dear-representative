@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {generatedAt, officials, oregonOfficial} from './oregon';
+import {officials as allOfficials, sourceUrls} from './current';
 import {formatPhone} from '../../lib/contacts';
 
 function expectOfficialUrl(value: string) {
@@ -18,6 +19,7 @@ function expectDate(value: string | null) {
 describe('Oregon contact data (congress-legislators generated)', () => {
   it('documents pinned unitedstates.github.io endpoints in generated notes', () => {
     expect(officials[0]?.notes).toMatch(/unitedstates\.github\.io\/congress-legislators\/legislators-current\.json/);
+    expect(sourceUrls.legislatorsCurrent).toBe('https://unitedstates.github.io/congress-legislators/legislators-current.json');
   });
 
   it('includes two senators and all six House districts keyed by bioguide id', () => {
@@ -95,6 +97,14 @@ describe('Oregon contact data (congress-legislators generated)', () => {
         expectDate(account.lastVerified);
         account.sourceUrls.forEach(expectOfficialUrl);
       }
+    }
+  });
+
+  it('is a subset of the national current-member import', () => {
+    expect(allOfficials.length).toBeGreaterThanOrEqual(500);
+    expect(new Set(allOfficials.map(o => o.id)).size).toBe(allOfficials.length);
+    for (const official of officials) {
+      expect(allOfficials.some(o => o.id === official.id && o.state === 'OR')).toBe(true);
     }
   });
 });

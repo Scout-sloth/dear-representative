@@ -11,7 +11,8 @@ const bonamici = oregonOfficial('Bonamici');
 describe('composer', () => {
   it('discloses local composition, clipboard use and hosting privacy without hiding the notice', () => {
     render(<App/>);
-    expect(screen.getByText('Find official congressional contact channels, write your own message, and explore public petitions. Your message stays in your browser. Nothing is submitted automatically.')).toBeTruthy();
+    expect(screen.getByText('Find official congressional contact channels for current members, write your own message, and explore public petitions. Your message stays in your browser. Nothing is submitted automatically.')).toBeTruthy();
+    expect(screen.getByText(/U\.S\. CONGRESS · CIVIC CONTACT/)).toBeTruthy();
     const disclosure = screen.getByRole('region', {name:'Your privacy'});
     expect(disclosure.closest('details')).toBeNull();
     expect(disclosure.textContent).toContain('browser memory');

@@ -1,6 +1,6 @@
 # Dear Representative
 
-A privacy-conscious React + TypeScript + Vite civic contact tool, initially populated with Oregon's congressional delegation and a congressional leadership campaign.
+A privacy-conscious React + TypeScript + Vite civic contact tool for current U.S. congressional members (imported from unitedstates/congress-legislators) with a congressional leadership campaign.
 
 ## Contact multiple offices
 
@@ -32,9 +32,9 @@ Copy and Open are separate actions. Profile/platform URLs contain no draft text;
 
 Bluesky counts [300 Unicode grapheme clusters](https://github.com/bluesky-social/bsky-docs/blob/main/docs/advanced-guides/intent-links.md). `Intl.Segmenter` supplies the count when supported; otherwise the UI explicitly reports exact counting unavailable. X displays guidance for its [standard 280-weighted-character limit](https://docs.x.com/fundamentals/counting-characters), without an inaccurate exact counter. Overlength drafts remain editable/copyable and are never truncated. Final validation and mention recognition belong to the destination platform. Instagram, native sharing, prefilled intents, and social-specific campaign templates are deferred.
 
-### Social accounts in generated Oregon data
+### Social accounts in generated member data
 
-X/Twitter handles currently come from `legislators-social-media.json` during `npm run generate:legislators`. Bluesky is **not** published in that dataset, so generated Oregon records omit Bluesky rather than inventing handles. Profile destination pages are not interaction-tested by the importer; `lastVerified` is the generation date. For a deeper hand review of Bluesky or classification disputes, record evidence separately and/or extend the generator — do not guess missing accounts. Tests validate structure and URLs, not real-world ownership. No visitor-triggered network calls.
+X/Twitter handles currently come from `legislators-social-media.json` during `npm run generate:legislators`. Bluesky is **not** published in that dataset, so generated records omit Bluesky rather than inventing handles. Profile destination pages are not interaction-tested by the importer; `lastVerified` is the generation date. For a deeper hand review of Bluesky or classification disputes, record evidence separately and/or extend the generator — do not guess missing accounts. Tests validate structure and URLs, not real-world ownership. No visitor-triggered network calls. The office picker is a type-ahead autocomplete over the full national list (~500 members); directory and multi-office cards stay scoped to the selected member’s state delegation.
 
 ## Run
 
@@ -48,7 +48,7 @@ Use Node.js 24 LTS. For a reproducible install from the lockfile, use `npm ci`.
 Development checks:
 
 ```bash
-npm run generate:legislators   # refresh Oregon officials from congress-legislators (network; commit the result)
+npm run generate:legislators   # refresh all current officials from congress-legislators (network; commit the result)
 npm test
 npm run typecheck
 npm run build

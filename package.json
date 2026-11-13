@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
-    "generate:legislators": "node scripts/generate-oregon-legislators.mjs"
+    "generate:legislators": "node scripts/generate-legislators.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

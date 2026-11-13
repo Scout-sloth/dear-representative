@@ -51,15 +51,18 @@ describe('message rendering', () => {
     });
 });
 describe('data consistency', () => {
-    it('has unique identifiers and valid Oregon contacts without invented verification', () => {
-        expect(states.map(s => s.code)).toEqual(['OR']);
+    it('has unique identifiers and valid national contacts without invented verification', () => {
+        expect(states[0]?.code).toBe('OR');
+        expect(states.map(s => s.code)).toContain('OR');
+        expect(states.length).toBeGreaterThan(50);
         expect(new Set(legislators.map(o => o.id)).size).toBe(legislators.length);
-        expect(legislators).toHaveLength(8);
+        expect(legislators.length).toBeGreaterThanOrEqual(500);
+        expect(legislators.filter(o => o.state === 'OR')).toHaveLength(8);
         for (const official of legislators) {
             expect(states.some(s => s.code === official.state)).toBe(true);
             expect(official.salutation).toBeTruthy();
             if (official.chamber === 'house')
-                expect(official.district).toBeGreaterThan(0);
+                expect(official.district).toBeGreaterThanOrEqual(0);
             else
                 expect(official.district).toBeUndefined();
         }
